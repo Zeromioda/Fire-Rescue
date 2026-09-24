@@ -22,15 +22,6 @@ class RegisteredUserController extends Controller
     {
         return view('auth.register');
     }
-    
-    $user = User::create([
-    'name' => $request->name,
-    'email' => $request->email,
-    'password' => Hash::make($request->password),
-]);
-
-$user->assignRole('Responder');
-$user->assignRole('Admin');
 
     /**
      * Handle an incoming registration request.
