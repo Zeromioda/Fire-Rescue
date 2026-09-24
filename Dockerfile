@@ -6,16 +6,15 @@ FROM node:20 AS node_builder
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci
+COPY vite.config.js ./
 COPY resources resources
-COPY vite.config.js . || true
-COPY tsconfig.json . || true
-RUN npm run build || true
+RUN npm run build
 
 FROM php:8.2-fpm
 WORKDIR /var/www/html
 
 # System dependencies
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     unzip \
     libzip-dev \
@@ -26,11 +25,9 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev \
     curl \
     zip \
- && rm -rf /var/lib/apt/lists/*
-
-# PHP extensions
-RUN docker-php-ext-configure gd --with-jpeg --with-freetype \
- && docker-php-ext-install pdo pdo_mysql zip gd bcmath
+    && docker-php-ext-configure gd --with-jpeg --with-freetype \
+    && docker-php-ext-install pdo_mysql zip gd bcmath \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
@@ -39,10 +36,10 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 COPY . /var/www/html
 
 # Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist || true
+RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-progress
 
-# Copy built frontend into public (if produced)
-COPY --from=node_builder /app/dist /var/www/html/public/build
+# Copy built frontend into public (Laravel Vite writes here)
+COPY --from=node_builder /app/public/build /var/www/html/public/build
 
 # Permissions for Laravel
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache || true
