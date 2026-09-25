@@ -122,3 +122,61 @@ input:-webkit-autofill:focus {
 }
 
 [x-cloak] { display: none !important; }
+
+@layer components {
+    /* Grid items may shrink below their content width, so long text never widens the page */
+    .grid > * {
+        min-width: 0;
+    }
+
+    /* Phones: show table rows as labelled cards instead of a sideways-scrolling table.
+       Labels come from the column headers (see resources/js/table-stack.js). */
+    @media (max-width: 767px) {
+        table.table-stack {
+            min-width: 0 !important;
+        }
+        table.table-stack,
+        table.table-stack tbody {
+            display: block;
+            width: 100%;
+        }
+        table.table-stack thead {
+            display: none;
+        }
+        table.table-stack tbody tr {
+            display: block;
+            padding: 0.75rem 0;
+        }
+        table.table-stack tbody td {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.25rem 1rem;
+            padding: 0.3rem 0 !important;
+            white-space: normal !important;
+            text-align: right !important;
+        }
+        table.table-stack tbody td::before {
+            content: attr(data-label);
+            margin-right: auto;
+            font-size: 0.7rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            text-align: left;
+            color: hsl(var(--muted-foreground));
+        }
+        /* First column is the row's title: full width, no label */
+        table.table-stack tbody td:first-child,
+        table.table-stack tbody td[colspan] {
+            display: block;
+            text-align: left !important;
+        }
+        table.table-stack tbody td:first-child::before,
+        table.table-stack tbody td[colspan]::before,
+        table.table-stack tbody td[data-label=""]::before {
+            display: none;
+        }
+    }
+}

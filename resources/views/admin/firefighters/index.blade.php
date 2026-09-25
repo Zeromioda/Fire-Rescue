@@ -147,7 +147,7 @@
             <div class="space-y-4 rounded-3xl border border-border bg-card/95 p-6 shadow-2xl backdrop-blur-xl">
                 <h3 class="text-lg font-semibold tracking-tight text-foreground">Active Station Personnel Roster</h3>
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm">
+                    <table class="table-stack w-full text-left text-sm">
                         <thead class="border-b border-border">
                             <tr class="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                                 <th class="whitespace-nowrap px-4 py-3 font-medium">Badge No</th>

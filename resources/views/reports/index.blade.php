@@ -68,7 +68,7 @@
             </p>
 
             <!-- Stat Cards -->
-            <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
+            <div class="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-5">
                 <div class="print-card rounded-3xl border border-border bg-card/95 p-6 shadow-2xl backdrop-blur-xl">
                     <p class="text-xs font-medium uppercase tracking-wider text-muted-foreground">Total Incidents</p>
                     <p class="mt-2 text-3xl font-semibold tracking-tight tabular-nums text-foreground">{{ $stats['total'] }}</p>

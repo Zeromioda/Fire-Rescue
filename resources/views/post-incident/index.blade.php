@@ -16,7 +16,7 @@
         <div class="space-y-6 px-4 sm:px-6 lg:px-8">
             <x-flash />
 
-            <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4">
                 @foreach ([
                     ['Awaiting Report', $counts['pending'], 'text-rose-600 dark:text-rose-400'],
                     ['Reports Filed', $counts['filed'], 'text-foreground'],

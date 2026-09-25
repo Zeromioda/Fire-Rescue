@@ -16,7 +16,7 @@
         <div class="px-4 sm:px-6 lg:px-8 space-y-6">
 
             <!-- Stat Cards Grid -->
-            <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div class="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3">
                 <div class="rounded-3xl border border-border bg-card/95 p-6 shadow-2xl backdrop-blur-xl">
                     <p class="text-xs font-medium uppercase tracking-wider text-muted-foreground">Total Terminal Logins</p>
                     <p class="mt-2 text-3xl font-semibold tracking-tight tabular-nums text-foreground">{{ $totalLogins }}</p>
@@ -43,7 +43,7 @@
                 </div>
 
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm">
+                    <table class="table-stack w-full text-left text-sm">
                         <thead class="border-b border-border">
                             <tr class="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                                 <th class="whitespace-nowrap px-4 py-3 font-medium">Personnel</th>

@@ -126,7 +126,7 @@
                 <h3 class="text-lg font-semibold tracking-tight text-foreground">Station Apparatus Fleet</h3>
                 @if(isset($apparatuses) && $apparatuses->count() > 0)
                     <div class="overflow-x-auto">
-                        <table class="w-full text-left text-sm">
+                        <table class="table-stack w-full text-left text-sm">
                             <thead>
                                 <tr class="border-b border-border">
                                     <th class="{{ $thClass }}">Call Sign</th>
@@ -210,7 +210,7 @@
                 <h3 class="text-lg font-semibold tracking-tight text-foreground">Equipment & Gear Inventory</h3>
                 @if(isset($equipment) && $equipment->count() > 0)
                     <div class="overflow-x-auto">
-                        <table class="w-full text-left text-sm">
+                        <table class="table-stack w-full text-left text-sm">
                             <thead>
                                 <tr class="border-b border-border">
                                     <th class="{{ $thClass }}">Asset Tag</th>

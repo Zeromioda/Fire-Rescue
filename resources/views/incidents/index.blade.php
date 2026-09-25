@@ -20,7 +20,7 @@
         <div class="space-y-6 px-4 sm:px-6 lg:px-8">
             <x-flash />
 
-            <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4">
                 @foreach ([
                     ['Total Incidents', $counts['total'], 'text-foreground'],
                     ['Open Incidents', $counts['active'], 'text-accent'],
@@ -66,7 +66,7 @@
             <!-- Incident Log -->
             <div class="{{ $card }} !p-0 overflow-hidden">
                 <div class="overflow-x-auto">
-                    <table class="w-full min-w-[760px] text-left text-sm">
+                    <table class="table-stack w-full text-left text-sm md:min-w-[760px]">
                         <thead class="border-b border-border text-xs uppercase tracking-wider text-muted-foreground">
                             <tr>
                                 <th class="px-6 py-4 font-medium">Incident</th>

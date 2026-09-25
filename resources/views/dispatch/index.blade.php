@@ -29,10 +29,10 @@
                     <a href="{{ route('incidents.create') }}" class="mt-4 inline-flex items-center justify-center rounded-3xl border border-primary/20 bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90">Log New Incident</a>
                 </div>
             @else
-                <div class="grid gap-6 xl:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
+                <div class="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
 
-                    <!-- Open incidents queue -->
-                    <div class="space-y-3">
+                    <!-- Open incidents queue (below the selected incident on phones) -->
+                    <div class="order-2 space-y-3 xl:order-1">
                         <h3 class="px-1 text-sm font-semibold uppercase tracking-wider text-muted-foreground">Open Incidents ({{ $incidents->count() }})</h3>
                         @foreach ($incidents as $incident)
                             @php($stage = $incident->stage())
@@ -53,7 +53,7 @@
 
                     <!-- Selected incident -->
                     @if ($selected)
-                        <div class="space-y-6">
+                        <div class="order-1 space-y-6 xl:order-2">
                             <div class="{{ $card }} space-y-4">
                                 <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                                     <div class="min-w-0">

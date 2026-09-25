@@ -9,6 +9,7 @@ export default {
         './storage/framework/views/*.php',
         './resources/views/**/*.blade.php',
         './resources/js/**/*.js',
+        './app/Models/**/*.php', // badge classes built in model helpers
     ],
     theme: {
         extend: {

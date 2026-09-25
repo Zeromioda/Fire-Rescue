@@ -39,7 +39,7 @@
             <x-flash />
 
             <!-- Metrics -->
-            <div class="grid gap-4 sm:grid-cols-3 xl:grid-cols-6">
+            <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 xl:grid-cols-6">
                 @foreach ([
                     ['Active Incidents', $metrics['active'], 'text-rose-600 dark:text-rose-400', null],
                     ['Units Deployed', $metrics['units_deployed'], 'text-amber-600 dark:text-amber-400', null],
@@ -60,7 +60,7 @@
                 <div class="space-y-6">
                     <!-- Operations map -->
                     <div class="{{ $card }} space-y-3">
-                        <div class="flex items-center justify-between">
+                        <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
                             <h3 class="text-lg font-semibold tracking-tight">Operations Map</h3>
                             <span class="text-xs text-muted-foreground">Green: Station 178 · Red: active incidents</span>
                         </div>
