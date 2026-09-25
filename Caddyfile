@@ -1,0 +1,17 @@
+{
+	admin off
+	auto_https off
+	frankenphp
+}
+
+:{$PORT:3000} {
+	root * /var/www/html/public
+	encode zstd gzip
+
+	# Vite build files have content hashes in their names, so browsers can keep them forever
+	header /build/assets/* Cache-Control "public, max-age=31536000, immutable"
+
+	route {
+		php_server
+	}
+}
