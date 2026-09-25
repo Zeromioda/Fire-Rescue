@@ -2,9 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Apparatus;
+use App\Models\Backlog;
+use App\Models\Equipment;
 use App\Models\Incident;
+use App\Models\IncidentUpdate;
+use App\Models\User;
 use App\Services\AiService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 
 class IncidentController extends Controller
@@ -22,16 +28,129 @@ class IncidentController extends Controller
         }
 
         // 2. Admin / Dispatcher View
-        // Open incidents first, then the most recent closed ones (full history lives in Fire Incident Reporting)
-        $incidents = Incident::with('reporter')->active()->latest()->get()
-            ->concat(Incident::with('reporter')->where('status', 'Resolved')->latest()->take(10)->get());
+        return view('dashboards.admin', $this->commandCenter());
+    }
+
+    // Everything the admin command center shows: KPIs, charts, readiness and activity
+    private function commandCenter(): array
+    {
+        $tz = 'Asia/Manila';
+        $now = now($tz);
+
+        $all = Incident::get(['id', 'category', 'severity', 'status', 'created_at', 'dispatched_at', 'arrived_at', 'controlled_at', 'resolved_at']);
+        $local = fn ($i) => $i->created_at->timezone($tz);
+
+        $active = Incident::active()
+            ->with([
+                'apparatuses' => fn ($q) => $q->wherePivotNull('released_at'),
+                'personnel' => fn ($q) => $q->wherePivotNull('released_at'),
+            ])
+            ->orderByRaw("CASE severity WHEN 'Critical' THEN 0 WHEN 'High' THEN 1 WHEN 'Medium' THEN 2 ELSE 3 END")
+            ->latest()
+            ->get();
+
+        $avg = function ($values) {
+            $values = $values->filter(fn ($v) => $v !== null);
+
+            return $values->isEmpty() ? null : (int) round($values->avg());
+        };
+
+        // Fleet: apparatus statuses are free text, so fold them into four states
+        $unitState = fn ($status) => match (strtolower((string) $status)) {
+            'available', 'in service' => 'Available',
+            'dispatched', 'deployed' => 'Deployed',
+            'maintenance', 'under maintenance' => 'Maintenance',
+            default => 'Out of Service',
+        };
+        $fleet = Apparatus::orderBy('call_sign')->get()->each(fn ($unit) => $unit->state = $unitState($unit->status));
+
+        $crew = User::role('Firefighter');
+        $resolved = $all->where('status', 'Resolved')->count();
+        $last30 = $all->filter(fn ($i) => $i->created_at->gte(now()->subDays(30)))->count();
+
         $stats = [
-            'total' => Incident::count(),
-            'active' => Incident::active()->count(),
-            'resolved' => Incident::where('status', 'Resolved')->count(),
+            'total' => $all->count(),
+            'today' => $all->filter(fn ($i) => $local($i)->isSameDay($now))->count(),
+            'last_30' => $last30,
+            'prev_30' => $all->filter(fn ($i) => $i->created_at->between(now()->subDays(60), now()->subDays(30)))->count(),
+            'active' => $active->count(),
+            'awaiting' => $active->where('status', 'Pending')->count(),
+            'resolved' => $resolved,
+            'resolution_rate' => $all->count() ? (int) round($resolved / $all->count() * 100) : 0,
+            'avg_dispatch' => $avg($all->map->dispatchMinutes()),
+            'avg_response' => $avg($all->map->responseMinutes()),
+            'avg_control' => $avg($all->map(fn ($i) => $i->controlled_at && $i->arrived_at ? (int) round($i->arrived_at->diffInMinutes($i->controlled_at)) : null)),
+            'units_total' => $fleet->count(),
+            'units_available' => $fleet->where('state', 'Available')->count(),
+            'crew_total' => (clone $crew)->count(),
+            'crew_available' => (clone $crew)->where('is_available', true)->count(),
+            'crew_deployed' => (clone $crew)->whereHas('activeAssignments')->count(),
+            'crew_standby' => (clone $crew)->where('is_available', true)->whereDoesntHave('activeAssignments')->count(),
         ];
 
-        return view('dashboards.admin', compact('incidents', 'stats'));
+        // Call volume: last 12 weeks and last 12 months
+        $trend = [
+            'weekly' => collect(range(11, 0))->map(function ($w) use ($now, $all, $local) {
+                $start = $now->copy()->startOfWeek()->subWeeks($w);
+                $count = $all->filter(fn ($i) => $local($i)->between($start, $start->copy()->endOfWeek()))->count();
+
+                return ['label' => $start->format('M j'), 'tip' => 'Week of '.$start->format('M j, Y'), 'value' => $count];
+            })->all(),
+            'monthly' => collect(range(11, 0))->map(function ($m) use ($now, $all, $local) {
+                $start = $now->copy()->startOfMonth()->subMonths($m);
+                $count = $all->filter(fn ($i) => $local($i)->isSameMonth($start))->count();
+
+                return ['label' => $start->format('M'), 'tip' => $start->format('F Y'), 'value' => $count];
+            })->all(),
+        ];
+
+        $byHour = $all->groupBy(fn ($i) => (int) $local($i)->format('G'))->map->count();
+        $hourly = collect(range(0, 23))->map(fn ($h) => [
+            'label' => Carbon::createFromTime($h)->format('ga'),
+            'tip' => Carbon::createFromTime($h)->format('g:00 A').' – '.Carbon::createFromTime($h)->format('g:59 A'),
+            'value' => $byHour->get($h, 0),
+        ])->all();
+
+        $severity = collect(Incident::SEVERITIES)->reverse()
+            ->mapWithKeys(fn ($s) => [$s => $all->where('severity', $s)->count()])->all();
+
+        // Top categories, the long tail folded into "Other"
+        $categories = $all->groupBy(fn ($i) => $i->category ?: 'Other')->map->count()->sortDesc();
+        if ($categories->count() > 6) {
+            $top = $categories->except('Other')->take(5);
+            $categories = $top->put('Other', $categories->sum() - $top->sum());
+        }
+
+        $pipeline = collect(array_slice(Incident::STAGES, 0, 4))
+            ->mapWithKeys(fn ($stage) => [$stage => $active->filter(fn ($i) => $i->stage() === $stage)->count()])->all();
+
+        $equipment = [
+            'by_status' => collect(['Available', 'Assigned', 'In Maintenance', 'Decommissioned'])
+                ->mapWithKeys(fn ($s) => [$s => (int) Equipment::where('status', $s)->sum('quantity')])->all(),
+            'expiring' => Equipment::whereNotNull('expiration_date')->where('expiration_date', '<=', now()->addDays(30)->toDateString())->count(),
+        ];
+
+        $backlog = [
+            'open' => Backlog::where('status', '!=', 'Resolved')->count(),
+            'by_priority' => collect(['Critical', 'High', 'Medium', 'Low'])
+                ->mapWithKeys(fn ($p) => [$p => Backlog::where('status', '!=', 'Resolved')->where('priority', $p)->count()])->all(),
+        ];
+
+        return [
+            'stats' => $stats,
+            'active' => $active,
+            'trend' => $trend,
+            'hourly' => $hourly,
+            'severity' => $severity,
+            'categories' => $categories->all(),
+            'pipeline' => $pipeline,
+            'fleet' => $fleet,
+            'equipment' => $equipment,
+            'backlog' => $backlog,
+            'feed' => IncidentUpdate::with(['incident', 'user'])->latest()->latest('id')->take(8)->get(),
+            'recentResolved' => Incident::where('status', 'Resolved')->latest()->take(6)->get(),
+            'tz' => $tz,
+        ];
     }
 
     // Toggle Duty Availability Status for Responders
