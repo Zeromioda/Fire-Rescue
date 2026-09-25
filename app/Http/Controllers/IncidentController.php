@@ -124,11 +124,8 @@ class IncidentController extends Controller
         $pipeline = collect(array_slice(Incident::STAGES, 0, 4))
             ->mapWithKeys(fn ($stage) => [$stage => $active->filter(fn ($i) => $i->stage() === $stage)->count()])->all();
 
-        $equipment = [
-            'by_status' => collect(['Available', 'Assigned', 'In Maintenance', 'Decommissioned'])
-                ->mapWithKeys(fn ($s) => [$s => (int) Equipment::where('status', $s)->sum('quantity')])->all(),
-            'expiring' => Equipment::whereNotNull('expiration_date')->where('expiration_date', '<=', now()->addDays(30)->toDateString())->count(),
-        ];
+        $equipment = collect(['Available', 'Assigned', 'In Maintenance', 'Decommissioned'])
+            ->mapWithKeys(fn ($s) => [$s => (int) Equipment::where('status', $s)->sum('quantity')])->all();
 
         $backlog = [
             'open' => Backlog::where('status', '!=', 'Resolved')->count(),

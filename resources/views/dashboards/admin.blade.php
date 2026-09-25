@@ -370,16 +370,13 @@
                             <a href="{{ route('equipment.index') }}" class="text-xs font-semibold text-primary hover:underline">Inventory</a>
                         </div>
                         <div class="mt-2 grid grid-cols-2 gap-2">
-                            @foreach ($equipment['by_status'] as $status => $qty)
+                            @foreach ($equipment as $status => $qty)
                                 <div class="rounded-2xl bg-card-alt px-3 py-2">
                                     <p class="text-[11px] uppercase tracking-wider text-muted-foreground">{{ $status }}</p>
                                     <p class="text-lg font-semibold tabular-nums text-foreground">{{ number_format($qty) }}</p>
                                 </div>
                             @endforeach
                         </div>
-                        @if ($equipment['expiring'])
-                            <p class="mt-2 rounded-2xl bg-amber-500/10 px-3 py-2 text-xs font-medium text-amber-700 dark:text-amber-400">⚠ {{ $equipment['expiring'] }} {{ Str::plural('item', $equipment['expiring']) }} expired or expiring within 30 days</p>
-                        @endif
                     </div>
 
                     <div>
