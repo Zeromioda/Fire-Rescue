@@ -73,7 +73,7 @@
             </div>
         </div>
 
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+        <div class="px-4 sm:px-6 lg:px-8 space-y-6">
 
             @if (session('status'))
                 <div class="rounded-3xl border border-border bg-card/95 p-5 text-sm font-medium text-emerald-600 shadow-2xl backdrop-blur-xl dark:text-emerald-400">

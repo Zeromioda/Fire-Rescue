@@ -32,7 +32,7 @@
             <div class="transition-[padding] duration-300" :class="sidebarOpen ? 'lg:pl-72' : 'lg:pt-14'">
                 <!-- Page Heading -->
                 @if (isset($header))
-                    <header class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 lg:pt-8">
+                    <header class="px-4 sm:px-6 lg:px-8 pt-6 lg:pt-8">
                         <div class="rounded-3xl border border-border bg-card/95 p-6 shadow-2xl backdrop-blur-xl">
                             {{ $header }}
                         </div>

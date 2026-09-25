@@ -5,7 +5,8 @@
         </h2>
     </x-slot>
 
-    <div class="mx-auto max-w-5xl space-y-6 p-6 md:p-8">
+    <div class="py-8">
+        <div class="grid items-start gap-6 px-4 sm:px-6 lg:px-8 xl:grid-cols-2">
 
         <!-- Profile Information -->
         <div class="rounded-3xl border border-border bg-card/95 p-6 shadow-2xl backdrop-blur-xl">
@@ -24,6 +25,6 @@
             </div>
             @include('profile.partials.update-password-form')
         </div>
-
+        </div>
     </div>
 </x-app-layout>

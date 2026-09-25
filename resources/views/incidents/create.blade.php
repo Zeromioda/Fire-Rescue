@@ -18,7 +18,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <div class="py-8">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+        <div class="px-4 sm:px-6 lg:px-8 space-y-6">
             <form action="{{ route('incidents.store') }}" method="POST" class="rounded-3xl border border-border bg-card/95 p-6 shadow-2xl backdrop-blur-xl space-y-6">
                 @csrf
 

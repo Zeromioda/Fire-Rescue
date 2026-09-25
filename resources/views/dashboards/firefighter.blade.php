@@ -41,14 +41,14 @@
             border: 1px solid #e2e8f0 !important;
         }
         .dark .leaflet-routing-container {
-            background-color: rgba(27, 34, 26, 0.95) !important;
-            color: #edf3ea !important;
-            border-color: #2c362c !important;
+            background-color: hsl(var(--card) / 0.95) !important;
+            color: hsl(var(--foreground)) !important;
+            border-color: hsl(var(--border)) !important;
         }
     </style>
 
     <div class="py-8">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+        <div class="px-4 sm:px-6 lg:px-8 space-y-6">
 
             <!-- Active Emergency Dispatches Section -->
             <div class="space-y-4">

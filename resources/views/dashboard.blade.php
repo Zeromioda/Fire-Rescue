@@ -28,7 +28,7 @@
     </x-slot>
 
     <div class="py-8">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+        <div class="px-4 sm:px-6 lg:px-8 space-y-6">
 
             <!-- Welcome & Personnel Info Card -->
             <div class="flex flex-col items-start justify-between gap-4 rounded-3xl border border-border bg-card/95 p-6 shadow-2xl backdrop-blur-xl sm:flex-row sm:items-center">
