@@ -41,14 +41,6 @@
                     <x-input-error :messages="$errors->get('password')" />
                 </div>
 
-                <!-- Remember Device -->
-                <div class="flex items-center">
-                    <label for="remember_me" class="inline-flex cursor-pointer items-center">
-                        <input id="remember_me" type="checkbox" name="remember" class="h-4 w-4 rounded border-border text-primary focus:ring-primary">
-                        <span class="ms-2 text-sm text-muted-foreground">Remember this terminal</span>
-                    </label>
-                </div>
-
                 <!-- Submit -->
                 <x-primary-button class="w-full">
                     Access Terminal
