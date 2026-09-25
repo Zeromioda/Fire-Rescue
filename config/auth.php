@@ -114,4 +114,16 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Login OTP
+    |--------------------------------------------------------------------------
+    |
+    | When enabled, users must enter a 6-digit code emailed to them after
+    | their password is accepted. Set LOGIN_OTP_ENABLED=false to bypass it.
+    |
+    */
+
+    'login_otp' => env('LOGIN_OTP_ENABLED', true),
+
 ];

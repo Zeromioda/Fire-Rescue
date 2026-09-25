@@ -11,7 +11,7 @@
                     Forgot Your Password?
                 </h2>
                 <p class="text-xs text-muted leading-relaxed">
-                    Enter your registered personnel email below. We will send a <span class="text-foreground font-semibold">password reset link</span> to reset your dispatch credentials.
+                    Enter your registered personnel email below. We will send a <span class="text-foreground font-semibold">6-digit OTP code</span> to reset your dispatch credentials.
                 </p>
             </div>
 
@@ -22,7 +22,7 @@
                 </div>
             @endif
 
-            <form method="POST" action="{{ route('password.email') }}" class="space-y-4">
+            <form method="POST" action="{{ route('password.otp.send') }}" class="space-y-4">
                 @csrf
 
                 <!-- Registered Email Field -->
@@ -35,7 +35,7 @@
 
                 <!-- Submit Button -->
                 <button type="submit" class="w-full py-3 bg-primary text-primary-foreground font-display font-bold text-xs rounded-xl shadow-lg hover:opacity-90 transition uppercase tracking-wider mt-2">
-                    Send Reset Link →
+                    Send Verification OTP →
                 </button>
             </form>
 
