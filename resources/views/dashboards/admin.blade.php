@@ -17,6 +17,8 @@
     <div class="py-8">
         <div class="px-4 sm:px-6 lg:px-8 space-y-6">
 
+            <x-flash />
+
             <!-- Stats Bar -->
             <div class="grid gap-6 sm:grid-cols-3">
                 <div class="rounded-3xl border border-border bg-card/95 p-6 shadow-2xl backdrop-blur-xl">
@@ -35,7 +37,10 @@
 
             <!-- Incident Live Stream -->
             <div class="space-y-4">
-                <h3 class="text-lg font-semibold tracking-tight text-foreground">Live Dispatch Stream</h3>
+                <div class="flex items-center justify-between gap-3">
+                    <h3 class="text-lg font-semibold tracking-tight text-foreground">Live Dispatch Stream</h3>
+                    <a href="{{ route('incidents.index') }}" class="text-sm font-semibold text-primary hover:underline">View all incidents</a>
+                </div>
 
                 @foreach($incidents as $incident)
                     <div class="grid grid-cols-1 gap-6 rounded-3xl border border-border bg-card/95 p-6 shadow-2xl backdrop-blur-xl md:grid-cols-2">
@@ -44,11 +49,11 @@
                                 <span class="rounded-full bg-rose-500/10 px-3 py-1 text-xs font-medium text-rose-600 dark:text-rose-400">
                                     {{ $incident->severity }} Severity
                                 </span>
-                                <span class="rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">{{ $incident->status }}</span>
+                                <span class="rounded-full px-3 py-1 text-xs font-medium {{ \App\Models\Incident::stageClasses($incident->stage()) }}">{{ $incident->stage() }}</span>
                             </div>
 
                             <div>
-                                <h4 class="text-lg font-semibold tracking-tight text-foreground">{{ $incident->title }}</h4>
+                                <a href="{{ route('incidents.show', $incident) }}" class="block text-lg font-semibold tracking-tight text-foreground hover:text-primary">{{ $incident->title }}</a>
                                 <p class="mt-1 text-sm text-muted-foreground">{{ $incident->location_address }}</p>
                             </div>
                             <p class="rounded-2xl bg-card-alt p-4 text-sm text-foreground">{{ $incident->description }}</p>

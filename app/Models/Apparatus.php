@@ -16,4 +16,17 @@ class Apparatus extends Model
         'status',
         'fuel_level_percent',
     ];
+
+    public function incidents()
+    {
+        return $this->belongsToMany(Incident::class, 'incident_apparatus')
+            ->withPivot(['dispatched_at', 'released_at'])
+            ->withTimestamps();
+    }
+
+    /** Incidents this unit is currently committed to. */
+    public function activeIncidents()
+    {
+        return $this->incidents()->wherePivotNull('released_at');
+    }
 }

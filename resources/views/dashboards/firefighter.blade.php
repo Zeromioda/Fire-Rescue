@@ -50,6 +50,8 @@
     <div class="py-8">
         <div class="px-4 sm:px-6 lg:px-8 space-y-6">
 
+            <x-flash />
+
             <!-- Active Emergency Dispatches Section -->
             <div class="space-y-4">
                 <h3 class="text-lg font-semibold tracking-tight text-foreground">
@@ -75,7 +77,7 @@
                                             </span>
                                             <span class="flex items-center gap-2 text-xs font-medium text-muted-foreground">
                                                 <span>Status</span>
-                                                <span class="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">{{ $incident->status }}</span>
+                                                <span class="rounded-full px-3 py-1 text-xs font-medium {{ \App\Models\Incident::stageClasses($incident->stage()) }}">{{ $incident->stage() }}</span>
                                             </span>
                                         </div>
 
@@ -98,9 +100,9 @@
                                             <label for="status-{{ $incident->id }}" class="mb-2 block text-sm font-medium text-foreground">Update Responding Status</label>
                                             <div class="flex flex-col gap-3 sm:flex-row">
                                                 <select id="status-{{ $incident->id }}" name="status" class="w-full flex-1 rounded-3xl border border-border bg-card/95 px-5 py-3 text-sm text-foreground shadow-2xl backdrop-blur-xl transition placeholder:text-muted-foreground/70 focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/30">
-                                                    <option value="Dispatched" {{ $incident->status === 'Dispatched' ? 'selected' : '' }}>En Route (Dispatched)</option>
-                                                    <option value="Under Control" {{ $incident->status === 'Under Control' ? 'selected' : '' }}>On-Scene / Under Control</option>
-                                                    <option value="Resolved" {{ $incident->status === 'Resolved' ? 'selected' : '' }}>Fire Extinguished / Complete</option>
+                                                    @foreach ($incident->nextStages() as $next)
+                                                        <option value="{{ $next }}">{{ ['On Scene' => 'Arrived On Scene', 'Under Control' => 'Fire Under Control', 'Resolved' => 'Fire Out / Operation Complete'][$next] ?? $next }}</option>
+                                                    @endforeach
                                                 </select>
                                                 <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-3xl border border-primary/20 bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-2xl backdrop-blur-xl transition hover:bg-primary/90">
                                                     Update

@@ -43,9 +43,9 @@
             mobileOpen ? 'translate-x-0' : '-translate-x-[120%]',
             sidebarOpen ? 'lg:translate-x-0' : 'lg:-translate-x-[120%]',
         ]"
-        class="fixed inset-y-4 left-4 z-50 flex w-64 flex-col justify-between rounded-3xl border border-border bg-card/95 p-4 shadow-2xl backdrop-blur-xl transition-transform duration-300"
+        class="fixed inset-y-4 left-4 z-50 flex w-64 flex-col justify-between gap-4 rounded-3xl border border-border bg-card/95 p-4 shadow-2xl backdrop-blur-xl transition-transform duration-300"
     >
-        <div class="space-y-6">
+        <div class="min-h-0 space-y-6 overflow-y-auto">
             <!-- Brand -->
             <div class="flex items-start justify-between gap-2 px-2 pt-2">
                 <div>
@@ -63,9 +63,30 @@
                 <a href="{{ route('dashboard') }}" class="{{ $navItem(request()->routeIs('dashboard')) }}">
                     {{ __('Dashboard') }}
                 </a>
-                <a href="{{ route('equipment.index') }}" class="{{ $navItem(request()->routeIs('equipment.*')) }}">
-                    {{ __('Equipment & Fleet') }}
-                </a>
+
+                @role('Admin')
+                    <p class="px-4 pb-1 pt-5 text-xs font-medium uppercase tracking-wider text-muted-foreground">Operations</p>
+
+                    <a href="{{ route('incidents.index') }}" class="{{ $navItem(request()->routeIs('incidents.*')) }}">
+                        {{ __('Fire Incident Reporting') }}
+                    </a>
+                    <a href="{{ route('dispatch.index') }}" class="{{ $navItem(request()->routeIs('dispatch.*')) }}">
+                        {{ __('Rescue Operation Dispatch') }}
+                    </a>
+                    <a href="{{ route('equipment.index') }}" class="{{ $navItem(request()->routeIs('equipment.*')) }}">
+                        {{ __('Resource & Equipment') }}
+                    </a>
+                    <a href="{{ route('tracking.index') }}" class="{{ $navItem(request()->routeIs('tracking.*')) }}">
+                        {{ __('Emergency Response Tracking') }}
+                    </a>
+                    <a href="{{ route('post-incident.index') }}" class="{{ $navItem(request()->routeIs('post-incident.*')) }}">
+                        {{ __('Post-Incident Reporting') }}
+                    </a>
+                @else
+                    <a href="{{ route('equipment.index') }}" class="{{ $navItem(request()->routeIs('equipment.*')) }}">
+                        {{ __('Resource & Equipment') }}
+                    </a>
+                @endrole
 
                 @role('Admin')
                     <p class="px-4 pb-1 pt-5 text-xs font-medium uppercase tracking-wider text-muted-foreground">Admin</p>

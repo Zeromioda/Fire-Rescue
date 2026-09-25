@@ -23,6 +23,19 @@ class User extends Authenticatable
         'remember_token',
     ];
 
+    public function assignments()
+    {
+        return $this->belongsToMany(Incident::class, 'incident_personnel')
+            ->withPivot(['role', 'dispatched_at', 'released_at'])
+            ->withTimestamps();
+    }
+
+    /** Incidents this responder is currently deployed to. */
+    public function activeAssignments()
+    {
+        return $this->assignments()->wherePivotNull('released_at');
+    }
+
     protected function casts(): array
     {
         return [

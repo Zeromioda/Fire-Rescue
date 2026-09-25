@@ -16,16 +16,18 @@ class IncidentController extends Controller
 
         // 1. Firefighter View
         if ($user->hasRole('Firefighter')) {
-            $activeIncidents = Incident::whereIn('status', ['Dispatched', 'Under Control'])->latest()->get();
+            $activeIncidents = Incident::whereIn('status', ['Dispatched', 'Under Control'])->with(['apparatuses', 'personnel'])->latest()->get();
             $resolvedIncidents = Incident::where('status', 'Resolved')->latest()->take(5)->get();
             return view('dashboards.firefighter', compact('activeIncidents', 'resolvedIncidents'));
         }
 
         // 2. Admin / Dispatcher View
-        $incidents = Incident::with('reporter')->latest()->get();
+        // Open incidents first, then the most recent closed ones (full history lives in Fire Incident Reporting)
+        $incidents = Incident::with('reporter')->active()->latest()->get()
+            ->concat(Incident::with('reporter')->where('status', 'Resolved')->latest()->take(10)->get());
         $stats = [
             'total' => Incident::count(),
-            'active' => Incident::whereIn('status', ['Pending', 'Dispatched', 'Under Control'])->count(),
+            'active' => Incident::active()->count(),
             'resolved' => Incident::where('status', 'Resolved')->count(),
         ];
 
@@ -42,45 +44,106 @@ class IncidentController extends Controller
         return redirect()->back()->with('success', 'Duty availability status updated.');
     }
 
+    // Fire Incident Reporting: searchable log of every incident
+    public function index(Request $request)
+    {
+        $filters = $request->validate([
+            'q' => 'nullable|string|max:100',
+            'stage' => 'nullable|in:'.implode(',', Incident::STAGES),
+            'severity' => 'nullable|in:'.implode(',', Incident::SEVERITIES),
+            'category' => 'nullable|string|max:50',
+        ]);
+
+        $incidents = Incident::query()
+            ->withCount(['apparatuses', 'personnel'])
+            ->when($filters['q'] ?? null, fn ($q, $term) => $q->where(fn ($w) => $w
+                ->whereLike('title', "%{$term}%")
+                ->orWhereLike('location_address', "%{$term}%")
+                ->orWhereLike('caller_name', "%{$term}%")))
+            ->when($filters['severity'] ?? null, fn ($q, $v) => $q->where('severity', $v))
+            ->when($filters['category'] ?? null, fn ($q, $v) => $q->where('category', $v))
+            ->when($filters['stage'] ?? null, fn ($q, $stage) => match ($stage) {
+                'Reported' => $q->where('status', 'Pending'),
+                'Dispatched' => $q->where('status', 'Dispatched')->whereNull('arrived_at'),
+                'On Scene' => $q->where('status', 'Dispatched')->whereNotNull('arrived_at'),
+                default => $q->where('status', $stage),
+            })
+            ->latest()
+            ->paginate(15)
+            ->withQueryString();
+
+        $counts = [
+            'total' => Incident::count(),
+            'active' => Incident::active()->count(),
+            'awaiting_dispatch' => Incident::where('status', 'Pending')->count(),
+            'today' => Incident::where('created_at', '>=', now('Asia/Manila')->startOfDay()->utc())->count(),
+        ];
+
+        return view('incidents.index', compact('incidents', 'counts', 'filters'));
+    }
+
+    // Incident detail: overview, timeline, deployed resources and report
+    public function show(Incident $incident)
+    {
+        $incident->load(['reporter', 'apparatuses', 'personnel', 'updates.user']);
+
+        return view('incidents.show', compact('incident'));
+    }
+
     // Admin: Create New Emergency Call View
     public function create()
     {
         return view('incidents.create');
     }
 
-    // Admin: Store Incident Call
+    // Admin: Store Incident Call (awaits unit assignment in Rescue Operation Dispatch)
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'severity' => 'required|string',
-            'location_address' => 'required|string',
-            'latitude' => 'required|numeric',
-            'longitude' => 'required|numeric',
-            'description' => 'required|string',
+            'category' => 'nullable|in:'.implode(',', Incident::CATEGORIES),
+            'severity' => 'required|in:'.implode(',', Incident::SEVERITIES),
+            'location_address' => 'required|string|max:500',
+            'latitude' => 'required|numeric|between:-90,90',
+            'longitude' => 'required|numeric|between:-180,180',
+            'description' => 'required|string|max:5000',
+            'caller_name' => 'nullable|string|max:255',
+            'caller_contact' => 'nullable|string|max:50',
         ]);
 
-        Incident::create([
+        $incident = Incident::create($validated + [
             'user_id' => Auth::id(),
-            'title' => $request->title,
-            'severity' => $request->severity,
-            'location_address' => $request->location_address,
-            'latitude' => $request->latitude,
-            'longitude' => $request->longitude,
-            'description' => $request->description,
-            'status' => 'Dispatched',
+            'category' => $validated['category'] ?? 'Structural Fire',
+            'status' => 'Pending',
         ]);
 
-        return redirect()->route('dashboard')->with('success', '🚨 Incident dispatched to response teams!');
+        $incident->log('Reported', 'Emergency call logged.', Auth::user());
+
+        return redirect()->route('dispatch.index', ['incident' => $incident->id])
+            ->with('success', 'Incident logged. Assign units and personnel to dispatch.');
     }
 
-    // Firefighter / Admin: Update On-Scene Status
+    // Firefighter / Admin: Update response stage
     public function updateStatus(Request $request, Incident $incident)
     {
-        $request->validate(['status' => 'required|string']);
-        $incident->update(['status' => $request->status]);
+        // Legacy status values from older forms map onto response stages
+        $request->merge(['status' => match ($request->input('status')) {
+            'Pending' => 'Reported',
+            default => $request->input('status'),
+        }]);
 
-        return redirect()->back()->with('success', 'Incident status updated.');
+        $request->validate([
+            'status' => 'required|in:'.implode(',', array_slice(Incident::STAGES, 1)),
+            'note' => 'nullable|string|max:1000',
+        ]);
+
+        if (! in_array($request->status, $incident->nextStages(), true)) {
+            return redirect()->back()->with('error', "This incident is already {$incident->stage()}.");
+        }
+
+        $incident->advanceTo($request->status, Auth::user(), $request->input('note'));
+
+        return redirect()->back()->with('success', "Incident marked {$request->status}.");
     }
 
     // Firefighter: Submit Final After-Action Incident Report with AI summary
@@ -126,11 +189,16 @@ class IncidentController extends Controller
             "• Operational Overview: " . $aiSummary['operational_overview'];
 
         $incident->update([
-            'status' => 'Resolved',
             'after_action_report' => $rawReport,
             'ai_summary' => $formattedSummary,
         ]);
 
-        return redirect()->back()->with('success', '🚨 Report submitted successfully!');
+        if ($incident->status !== 'Resolved') {
+            $incident->advanceTo('Resolved', Auth::user(), 'After-action report filed.');
+        } else {
+            $incident->log(null, 'After-action report updated.', Auth::user());
+        }
+
+        return redirect()->back()->with('success', 'After-action report submitted.');
     }
 }

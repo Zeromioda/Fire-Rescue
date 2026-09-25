@@ -8,6 +8,9 @@ use App\Http\Controllers\BacklogController;
 use App\Http\Controllers\OtpPasswordResetController;
 use App\Http\Controllers\AdminFirefighterController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\DispatchController;
+use App\Http\Controllers\TrackingController;
+use App\Http\Controllers\PostIncidentController;
 use Illuminate\Support\Facades\DB;
 
 Route::get('/health', function () {
@@ -69,6 +72,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::middleware(['role:Admin'])->group(function () {
+        // Fire Incident Reporting
+        Route::get('/incidents', [IncidentController::class, 'index'])->name('incidents.index');
+        Route::get('/incidents/{incident}', [IncidentController::class, 'show'])->whereNumber('incident')->name('incidents.show');
+
+        // Rescue Operation Dispatch
+        Route::get('/dispatch', [DispatchController::class, 'index'])->name('dispatch.index');
+        Route::post('/dispatch/{incident}', [DispatchController::class, 'store'])->name('dispatch.store');
+        Route::post('/dispatch/{incident}/release/{apparatus}', [DispatchController::class, 'releaseUnit'])->name('dispatch.release');
+
+        // Emergency Response Tracking
+        Route::get('/tracking', [TrackingController::class, 'index'])->name('tracking.index');
+        Route::post('/tracking/{incident}', [TrackingController::class, 'update'])->name('tracking.update');
+
+        // Post-Incident Reporting
+        Route::get('/post-incident', [PostIncidentController::class, 'index'])->name('post-incident.index');
+        Route::get('/post-incident/{incident}', [PostIncidentController::class, 'show'])->name('post-incident.show');
+
         // Equipment & Apparatus Creation and Deletion (Admin Only)
         Route::post('/equipment', [EquipmentController::class, 'store'])->name('equipment.store');
         Route::post('/equipment/apparatus', [EquipmentController::class, 'storeApparatus'])->name('apparatus.store');

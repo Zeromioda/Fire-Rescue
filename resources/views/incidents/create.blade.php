@@ -19,6 +19,8 @@
 
     <div class="py-8">
         <div class="px-4 sm:px-6 lg:px-8 space-y-6">
+            <x-flash />
+
             <form action="{{ route('incidents.store') }}" method="POST" class="rounded-3xl border border-border bg-card/95 p-6 shadow-2xl backdrop-blur-xl space-y-6">
                 @csrf
 
@@ -42,6 +44,28 @@
                             <option value="High">High (3rd Alarm)</option>
                             <option value="Critical">Critical (General Alarm)</option>
                         </select>
+                    </div>
+
+                    <!-- Category -->
+                    <div>
+                        <label class="mb-2 block text-sm font-medium text-foreground">Incident Category *</label>
+                        <select name="category" required class="w-full rounded-3xl border border-border bg-card/95 px-5 py-3 text-sm text-foreground shadow-2xl backdrop-blur-xl transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/30">
+                            @foreach (\App\Models\Incident::CATEGORIES as $category)
+                                <option value="{{ $category }}" @selected(old('category', 'Structural Fire') === $category)>{{ $category }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Caller -->
+                    <div class="grid gap-3 sm:grid-cols-2">
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-foreground">Caller Name</label>
+                            <input type="text" name="caller_name" value="{{ old('caller_name') }}" maxlength="255" placeholder="e.g. Juan Dela Cruz" class="w-full rounded-3xl border border-border bg-card/95 px-5 py-3 text-sm text-foreground shadow-2xl backdrop-blur-xl transition placeholder:text-muted-foreground/70 focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/30">
+                        </div>
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-foreground">Caller Contact</label>
+                            <input type="tel" name="caller_contact" value="{{ old('caller_contact') }}" maxlength="50" placeholder="09XX XXX XXXX" class="w-full rounded-3xl border border-border bg-card/95 px-5 py-3 text-sm text-foreground shadow-2xl backdrop-blur-xl transition placeholder:text-muted-foreground/70 focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/30">
+                        </div>
                     </div>
                 </div>
 
@@ -89,7 +113,7 @@
                 <!-- Submit Button -->
                 <div class="flex justify-end">
                     <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-3xl border border-primary/20 bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-2xl backdrop-blur-xl transition hover:bg-primary/90">
-                        Dispatch Emergency Call
+                        Log Incident &amp; Assign Units
                     </button>
                 </div>
             </form>
@@ -99,9 +123,9 @@
     <!-- Interactive Map Script -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Default center: Quezon City
-            var defaultLat = 14.660108;
-            var defaultLng = 120.998721;
+            // Default center: BFAD Station 178, Camarin
+            var defaultLat = 14.755200;
+            var defaultLng = 121.042800;
 
             // Initialize Map
             var map = L.map('dispatch-map').setView([defaultLat, defaultLng], 14);

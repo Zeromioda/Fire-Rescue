@@ -26,12 +26,14 @@ class DemoDataSeeder extends Seeder
 
     public function run(): void
     {
+        mt_srand(178); // repeatable "random" choices
+
         if (User::where('email', 'like', '%@'.self::EMAIL_DOMAIN)->exists()) {
-            $this->command?->warn('Demo data already present (users @'.self::EMAIL_DOMAIN.'), skipping.');
+            // Earlier demo data: only add dispatch/tracking records it is missing
+            $count = DB::transaction(fn () => $this->responseTracking());
+            $this->command?->info("Demo data already present; added response tracking to {$count} incidents.");
             return;
         }
-
-        mt_srand(178); // repeatable "random" choices
 
         DB::transaction(function () {
             $dispatcher = $this->dispatcher();
@@ -42,9 +44,124 @@ class DemoDataSeeder extends Seeder
             $this->apparatuses();
             $this->backlogs($firefighters);
             $this->loginLogs($firefighters->prepend($dispatcher));
+            $this->responseTracking();
         });
 
         $this->command?->info('Demo data seeded.');
+    }
+
+    /**
+     * Give demo incidents dispatch assignments, response milestones and a timeline,
+     * derived from their dispatcher notes and after-action times.
+     * Only touches demo incidents (they have dispatcher_notes) that have no tracking yet.
+     */
+    private function responseTracking(): int
+    {
+        $units = Apparatus::all()->keyBy('call_sign');
+        $crew = User::role('Firefighter')->where('email', 'like', '%@'.self::EMAIL_DOMAIN)->get();
+        $roles = ['Team Leader', 'Driver/Operator', 'Nozzleman', 'Nozzleman', 'Rescuer', 'EMS/First Aider'];
+        $busy = collect(); // responders already on an active demo incident
+
+        $incidents = Incident::whereNotNull('dispatcher_notes')
+            ->whereNull('dispatched_at')
+            ->whereDoesntHave('updates')
+            ->orderBy('created_at')
+            ->get();
+
+        foreach ($incidents as $incident) {
+            $reported = $incident->created_at->copy();
+            $logger = $incident->user_id;
+            $log = fn (Carbon $at, ?string $stage, ?string $note, ?int $by) => DB::table('incident_updates')->insert([
+                'incident_id' => $incident->id, 'user_id' => $by, 'stage' => $stage, 'note' => $note,
+                'created_at' => $at, 'updated_at' => $at,
+            ]);
+
+            $log($reported, 'Reported', 'Emergency call logged.', $logger);
+
+            if ($incident->status === 'Pending') {
+                continue;
+            }
+
+            $active = $incident->status !== 'Resolved';
+            $dispatched = $reported->copy()->addMinutes(mt_rand(1, 3));
+            $arrived = $this->reportTime($incident, 'Time of Arrival', $reported) ?? $dispatched->copy()->addMinutes(mt_rand(4, 10));
+            $controlled = $incident->status === 'Dispatched' ? null
+                : ($this->reportTime($incident, 'Time of Fire Subdue', $reported) ?? $arrived->copy()->addMinutes(mt_rand(15, 60)));
+            $resolved = $incident->status === 'Resolved' ? $controlled->copy()->addMinutes(mt_rand(15, 45)) : null;
+
+            // Recent incidents: never record a milestone in the future
+            foreach (['arrived', 'controlled', 'resolved'] as $var) {
+                if ($$var && $$var->isFuture()) {
+                    $$var = now()->subMinutes(1);
+                }
+            }
+
+            // Units named in the dispatcher notes, e.g. "Dispatched Engine 1, Tanker 1."
+            $assigned = $units->filter(fn ($u, $sign) => str_contains((string) $incident->dispatcher_notes, $sign));
+            foreach ($assigned as $unit) {
+                DB::table('incident_apparatus')->insert([
+                    'incident_id' => $incident->id, 'apparatus_id' => $unit->id,
+                    'dispatched_at' => $dispatched, 'released_at' => $resolved,
+                    'created_at' => $dispatched, 'updated_at' => $resolved ?? $dispatched,
+                ]);
+            }
+
+            $pool = $active ? $crew->whereNotIn('id', $busy) : $crew;
+            $team = $pool->shuffle()->take(min($pool->count(), mt_rand(3, 6)))->values();
+            foreach ($team as $i => $person) {
+                DB::table('incident_personnel')->insert([
+                    'incident_id' => $incident->id, 'user_id' => $person->id, 'role' => $roles[$i] ?? 'Responder',
+                    'dispatched_at' => $dispatched, 'released_at' => $resolved,
+                    'created_at' => $dispatched, 'updated_at' => $resolved ?? $dispatched,
+                ]);
+                if ($active) {
+                    $busy->push($person->id);
+                }
+            }
+
+            $leader = $team->first()?->id;
+            $sent = collect([$assigned->keys()->implode(', ') ?: null, $team->count().' responders'])->filter()->implode(' with ');
+            $log($dispatched, 'Dispatched', "Dispatched {$sent}.", $logger);
+            $log($arrived, 'On Scene', 'First unit arrived on scene; size-up in progress.', $leader);
+            if ($controlled) {
+                $log($controlled, 'Under Control', 'Fire declared under control.', $leader);
+            }
+            if ($resolved) {
+                $log($resolved, 'Resolved', 'Fire out; overhaul complete and area turned over to the barangay.', $leader);
+            }
+
+            DB::table('incidents')->where('id', $incident->id)->update([
+                'dispatched_at' => $dispatched, 'arrived_at' => $arrived,
+                'controlled_at' => $controlled, 'resolved_at' => $resolved,
+            ]);
+        }
+
+        // Match live availability to the active assignments
+        $deployedUnits = DB::table('incident_apparatus')->whereNull('released_at')->pluck('apparatus_id');
+        Apparatus::whereIn('id', $deployedUnits)->update(['status' => 'dispatched']);
+        Apparatus::whereNotIn('id', $deployedUnits)->where('status', 'dispatched')->update(['status' => 'available']);
+
+        $deployedCrew = DB::table('incident_personnel')->whereNull('released_at')->pluck('user_id');
+        User::whereIn('id', $deployedCrew)->update(['is_available' => false]);
+
+        return $incidents->count();
+    }
+
+    /** Read a clock time like "6:25 AM" for a field in the incident's AI summary, on the day it was reported. */
+    private function reportTime(Incident $incident, string $field, Carbon $reported): ?Carbon
+    {
+        if (! preg_match('/'.preg_quote($field, '/').':\D*?(\d{1,2}:\d{2} [AP]M)/', (string) $incident->ai_summary, $m)) {
+            return null;
+        }
+
+        $local = $reported->copy()->timezone(self::TZ);
+        $time = Carbon::parse($local->format('Y-m-d').' '.$m[1], self::TZ);
+
+        if ($time->lt($local)) {
+            $time->addDay(); // crossed midnight
+        }
+
+        return $time->utc();
     }
 
     private function dispatcher(): User
