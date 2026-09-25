@@ -55,7 +55,7 @@
                                 <p class="truncate text-xs text-muted-foreground">{{ $incident->location_address }}</p>
                             </div>
                             <p class="shrink-0 text-right text-xs tabular-nums text-muted-foreground">
-                                {{ $incident->created_at->timezone($tz)->format('M d, Y') }}<br>{{ $incident->apparatuses_count }} units · {{ $incident->personnel_count }} crew
+                                {{ $incident->created_at->timezone($tz)->format('M d, Y') }}<br>{{ $incident->apparatuses_count }} {{ str('unit')->plural($incident->apparatuses_count) }} · {{ $incident->personnel_count }} crew
                             </p>
                         </div>
 

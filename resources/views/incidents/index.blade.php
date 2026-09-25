@@ -91,7 +91,7 @@
                                         {{ $incident->created_at->timezone('Asia/Manila')->format('M d, Y') }}<br>{{ $incident->created_at->timezone('Asia/Manila')->format('g:i A') }}
                                     </td>
                                     <td class="px-4 py-4 text-xs tabular-nums text-foreground">{{ \App\Models\Incident::formatMinutes($incident->responseMinutes()) }}</td>
-                                    <td class="whitespace-nowrap px-4 py-4 text-xs text-muted-foreground">{{ $incident->apparatuses_count }} units · {{ $incident->personnel_count }} crew</td>
+                                    <td class="whitespace-nowrap px-4 py-4 text-xs text-muted-foreground">{{ $incident->apparatuses_count }} {{ str('unit')->plural($incident->apparatuses_count) }} · {{ $incident->personnel_count }} crew</td>
                                 </tr>
                             @empty
                                 <tr>

@@ -85,11 +85,9 @@
                         </tbody>
                     </table>
                 </div>
-
-                <div class="pt-2">
-                    {{ $logs->links() }}
-                </div>
             </div>
+
+            {{ $logs->links() }}
 
         </div>
     </div>
