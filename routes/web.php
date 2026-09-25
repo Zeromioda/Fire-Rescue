@@ -5,7 +5,6 @@ use App\Http\Controllers\IncidentController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\EquipmentController;
 use App\Http\Controllers\BacklogController;
-use App\Http\Controllers\OtpPasswordResetController;
 use App\Http\Controllers\AdminFirefighterController;
 use Illuminate\Support\Facades\DB;
 
@@ -25,14 +24,6 @@ Route::get('/health', function () {
 */
 Route::get('/', function () {
     return redirect()->route('login');
-});
-
-// Custom Password OTP Recovery Routes (Guest Only)
-Route::middleware('guest')->group(function () {
-    Route::get('/forgot-password-otp', [OtpPasswordResetController::class, 'showRequestForm'])->name('password.otp.request');
-    Route::post('/forgot-password-otp', [OtpPasswordResetController::class, 'sendOtp'])->name('password.otp.send');
-    Route::get('/verify-otp', [OtpPasswordResetController::class, 'showVerifyForm'])->name('password.otp.verify.form');
-    Route::post('/verify-otp', [OtpPasswordResetController::class, 'verifyAndReset'])->name('password.otp.reset');
 });
 
 /*
