@@ -7,6 +7,7 @@ use App\Http\Controllers\EquipmentController;
 use App\Http\Controllers\BacklogController;
 use App\Http\Controllers\OtpPasswordResetController;
 use App\Http\Controllers\AdminFirefighterController;
+use App\Http\Controllers\ReportController;
 use Illuminate\Support\Facades\DB;
 
 Route::get('/health', function () {
@@ -82,6 +83,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/backlog', [BacklogController::class, 'index'])->name('backlog.index');
         Route::post('/backlog', [BacklogController::class, 'store'])->name('backlog.store');
         Route::put('/backlog/{backlog}', [BacklogController::class, 'update'])->name('backlog.update');
+
+        // AI Analysis & Reporting
+        Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+        Route::post('/reports/generate', [ReportController::class, 'generate'])->middleware('throttle:10,1')->name('reports.generate');
     });
 
 });

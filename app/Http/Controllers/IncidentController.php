@@ -3,10 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Incident;
+use App\Services\AiService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 
 class IncidentController extends Controller
 {
@@ -84,8 +83,8 @@ class IncidentController extends Controller
         return redirect()->back()->with('success', 'Incident status updated.');
     }
 
-    // Firefighter: Submit Final After-Action Incident Report using Gemini AI
-    public function submitFinalReport(Request $request, Incident $incident)
+    // Firefighter: Submit Final After-Action Incident Report with AI summary
+    public function submitFinalReport(Request $request, Incident $incident, AiService $ai)
     {
         $request->validate([
             'after_action_report' => 'required|string|min:5|max:10000',
@@ -101,92 +100,21 @@ class IncidentController extends Controller
             'operational_overview' => 'No operational details were provided.',
         ];
 
-        $apiKey = config('services.gemini.api_key') ?: env('GEMINI_API_KEY');
+        $decoded = $ai->json(
+            "You are an information extraction assistant for a Fire and Rescue Services Management System.\n" .
+            "Extract ONLY explicitly stated facts from the firefighter's report. Do not guess, infer, or invent missing information.\n" .
+            "Return a JSON object with exactly these string keys: cause_of_fire, time_of_arrival, time_fire_subdued, casualties, operational_overview.\n" .
+            "If a fact is missing, use 'Not specified' (or 'No operational details were provided.' for operational_overview).\n" .
+            "operational_overview must be 1-2 sentences.",
+            "FIREFIGHTER REPORT:\n\"{$rawReport}\"",
+            1000
+        );
 
-        if (!empty($apiKey)) {
-            try {
-                $prompt = "You are an information extraction assistant for a Fire and Rescue Services Management System.\n" .
-                    "Extract ONLY explicitly stated facts from this report. Do not guess, infer, or invent missing information.\n\n" .
-                    "Return valid JSON only with these keys: cause_of_fire, time_of_arrival, time_fire_subdued, casualties, operational_overview.\n" .
-                    "If a fact is missing, set the value to 'Not specified' or 'No operational details were provided.'\n\n" .
-                    "FIRE FIGHTER REPORT:\n\"{$rawReport}\"";
-
-                $response = Http::timeout(30)
-                    ->withHeaders([
-                        'Content-Type' => 'application/json',
-                        'x-goog-api-key' => $apiKey,
-                    ])
-                    ->post(
-                        'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
-                        [
-                            'contents' => [
-                                [
-                                    'parts' => [
-                                        ['text' => $prompt],
-                                    ],
-                                ],
-                            ],
-                            'generationConfig' => [
-                                'temperature' => 0.0,
-                                'maxOutputTokens' => 1000,
-                                'responseMimeType' => 'application/json',
-                                'responseSchema' => [
-                                    'type' => 'OBJECT',
-                                    'properties' => [
-                                        'cause_of_fire' => ['type' => 'STRING', 'description' => 'Explicit cause or "Not specified"'],
-                                        'time_of_arrival' => ['type' => 'STRING', 'description' => 'Explicit arrival time or "Not specified"'],
-                                        'time_fire_subdued' => ['type' => 'STRING', 'description' => 'Explicit subdue time or "Not specified"'],
-                                        'casualties' => ['type' => 'STRING', 'description' => 'Explicit casualties or "Not specified"'],
-                                        'operational_overview' => ['type' => 'STRING', 'description' => '1-2 sentence overview or "No operational details were provided."'],
-                                    ],
-                                    'required' => [
-                                        'cause_of_fire',
-                                        'time_of_arrival',
-                                        'time_fire_subdued',
-                                        'casualties',
-                                        'operational_overview',
-                                    ],
-                                ],
-                            ],
-                        ]
-                    );
-
-                if ($response->successful()) {
-                    $parts = $response->json('candidates.0.content.parts', []);
-                    $generatedText = '';
-
-                    if (is_array($parts)) {
-                        foreach ($parts as $part) {
-                            if (is_array($part) && isset($part['text'])) {
-                                $generatedText .= $part['text'];
-                            }
-                        }
-                    }
-
-                    if (empty($generatedText)) {
-                        $generatedText = (string) $response->json('candidates.0.content.parts.0.text', '');
-                    }
-
-                    if (!empty($generatedText)) {
-                        $cleanText = preg_replace('/^```(?:json)?\s*/i', '', trim($generatedText));
-                        $cleanText = preg_replace('/\s*```$/', '', $cleanText);
-
-                        $decoded = json_decode($cleanText, true);
-                        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                            foreach ($aiSummary as $key => $default) {
-                                if (isset($decoded[$key]) && $decoded[$key] !== null && trim((string) $decoded[$key]) !== '') {
-                                    $aiSummary[$key] = trim((string) $decoded[$key]);
-                                }
-                            }
-                        } else {
-                            Log::warning('Gemini summary response was not valid JSON.', ['raw_response' => $generatedText]);
-                        }
-                    }
-                } else {
-                    Log::error('Gemini API Error', ['status' => $response->status(), 'body' => $response->body()]);
+        if (is_array($decoded)) {
+            foreach ($aiSummary as $key => $default) {
+                if (isset($decoded[$key]) && is_scalar($decoded[$key]) && trim((string) $decoded[$key]) !== '') {
+                    $aiSummary[$key] = trim((string) $decoded[$key]);
                 }
-            } catch (\Throwable $e) {
-                Log::error('Gemini Exception', ['message' => $e->getMessage()]);
             }
         }
 

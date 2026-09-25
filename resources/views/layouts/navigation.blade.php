@@ -91,6 +91,13 @@
                             <span class="text-base flex-shrink-0">📋</span>
                             <span x-show="open" class="whitespace-nowrap">{{ __('Station Backlog') }}</span>
                         </a>
+
+                        <!-- AI Analysis & Reports -->
+                        <a href="{{ route('reports.index') }}"
+                           class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all {{ request()->routeIs('reports.*') ? 'bg-rose-600 text-white shadow-md shadow-rose-600/20' : 'text-muted hover:text-foreground hover:bg-card-alt' }}">
+                            <span class="text-base flex-shrink-0">🧠</span>
+                            <span x-show="open" class="whitespace-nowrap">{{ __('AI Analysis & Reports') }}</span>
+                        </a>
                     </div>
                 @endrole
 
