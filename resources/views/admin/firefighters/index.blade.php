@@ -1,72 +1,73 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-                <h2 class="font-display font-black text-2xl text-foreground tracking-tight flex items-center gap-2">
-                    👨‍🚒 {{ __('Firefighter Personnel Roster') }}
+                <h2 class="text-2xl font-semibold tracking-tight text-foreground">
+                    {{ __('Firefighter Personnel Roster') }}
                 </h2>
-                <p class="text-xs text-muted font-mono uppercase tracking-wider mt-0.5">
-                    BFAD Station 178 • Admin Command Only
+                <p class="mt-1 text-sm text-muted-foreground">
+                    BFAD Station 178 · Admin command only
                 </p>
             </div>
         </div>
     </x-slot>
 
+    @php($inputClass = 'w-full rounded-3xl border border-border bg-card/95 px-5 py-3 text-sm text-foreground shadow-2xl backdrop-blur-xl transition placeholder:text-muted-foreground/70 focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/30')
+
     <!-- Main Page Container with Alpine State -->
-    <div class="py-8 bg-background min-h-screen text-foreground relative" x-data="{ editModalOpen: false, currentPersonnel: {} }">
-        
-        <!-- ABSOLUTE FULLSCREEN OVERLAY MODAL -->
-        <div x-show="editModalOpen" 
-             class="fixed inset-0 z-[999] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto" 
+    <div class="py-8 relative" x-data="{ editModalOpen: false, currentPersonnel: {} }">
+
+        <!-- Edit Personnel Modal -->
+        <div x-show="editModalOpen"
+             class="fixed inset-0 z-[999] flex items-center justify-center overflow-y-auto bg-background/70 p-4 backdrop-blur-sm"
              style="display: none;">
-            
-            <!-- Modal Card Box: Made completely solid with bg-zinc-900 to eliminate transparency -->
-            <div class="bg-zinc-900 border border-zinc-700 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4 my-auto max-h-[90vh] overflow-y-auto relative z-10" @click.away="editModalOpen = false">
-                <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
-                    <h3 class="font-black text-base text-white">Edit Personnel Details</h3>
-                    <button type="button" @click="editModalOpen = false" class="text-zinc-400 hover:text-white text-xl font-bold px-2">&times;</button>
+
+            <div class="relative z-10 my-auto max-h-[90vh] w-full max-w-md space-y-4 overflow-y-auto rounded-3xl border border-border bg-card/95 p-6 shadow-2xl backdrop-blur-xl" @click.away="editModalOpen = false">
+                <div class="flex items-center justify-between border-b border-border pb-4">
+                    <h3 class="text-lg font-semibold tracking-tight text-foreground">Edit Personnel Details</h3>
+                    <button type="button" @click="editModalOpen = false" class="px-2 text-xl text-muted-foreground transition hover:text-foreground" aria-label="Close">&times;</button>
                 </div>
 
-                <form :action="currentPersonnel.update_url" method="POST" class="space-y-3">
+                <form :action="currentPersonnel.update_url" method="POST" class="space-y-4">
                     @csrf
                     @method('PUT')
 
                     <div>
-                        <label class="block text-[10px] font-bold uppercase text-zinc-400 mb-1">Full Name</label>
-                        <input type="text" name="name" x-model="currentPersonnel.name" required class="w-full bg-zinc-950 border border-zinc-700 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-rose-600">
+                        <label class="mb-2 block text-sm font-medium text-foreground">Full Name</label>
+                        <input type="text" name="name" x-model="currentPersonnel.name" required class="{{ $inputClass }}">
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-bold uppercase text-zinc-400 mb-1">Badge / Serial No.</label>
-                        <input type="text" name="badge_number" x-model="currentPersonnel.badge_number" required class="w-full bg-zinc-950 border border-zinc-700 rounded-xl p-2.5 text-xs text-white font-mono focus:outline-none focus:border-rose-600">
+                        <label class="mb-2 block text-sm font-medium text-foreground">Badge / Serial No.</label>
+                        <input type="text" name="badge_number" x-model="currentPersonnel.badge_number" required class="{{ $inputClass }}">
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-bold uppercase text-zinc-400 mb-1">Official Email</label>
-                        <input type="email" name="email" x-model="currentPersonnel.email" required class="w-full bg-zinc-950 border border-zinc-700 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-rose-600">
+                        <label class="mb-2 block text-sm font-medium text-foreground">Official Email</label>
+                        <input type="email" name="email" x-model="currentPersonnel.email" required class="{{ $inputClass }}">
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-bold uppercase text-zinc-400 mb-1">System Role</label>
-                        <select name="role" x-model="currentPersonnel.role" required class="w-full bg-zinc-950 border border-zinc-700 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-rose-600">
+                        <label class="mb-2 block text-sm font-medium text-foreground">System Role</label>
+                        <select name="role" x-model="currentPersonnel.role" required class="{{ $inputClass }}">
                             <option value="Firefighter">Firefighter</option>
                             <option value="Admin">Admin</option>
                         </select>
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-bold uppercase text-zinc-400 mb-1">New Password <span class="text-zinc-500 font-normal">(Leave blank to keep current)</span></label>
-                        <input type="password" name="password" class="w-full bg-zinc-950 border border-zinc-700 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-rose-600">
+                        <label class="mb-2 block text-sm font-medium text-foreground">New Password <span class="font-normal text-muted-foreground">(leave blank to keep current)</span></label>
+                        <input type="password" name="password" class="{{ $inputClass }}">
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-bold uppercase text-zinc-400 mb-1">Confirm New Password</label>
-                        <input type="password" name="password_confirmation" class="w-full bg-zinc-950 border border-zinc-700 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-rose-600">
+                        <label class="mb-2 block text-sm font-medium text-foreground">Confirm New Password</label>
+                        <input type="password" name="password_confirmation" class="{{ $inputClass }}">
                     </div>
 
-                    <div class="flex justify-end gap-2 pt-3 border-t border-zinc-800">
-                        <button type="button" @click="editModalOpen = false" class="px-4 py-2 bg-zinc-800 text-zinc-300 text-xs font-bold rounded-xl hover:bg-zinc-700">Cancel</button>
-                        <button type="submit" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-black rounded-xl">Save Changes</button>
+                    <div class="flex flex-col-reverse gap-3 border-t border-border pt-4 sm:flex-row sm:justify-end">
+                        <button type="button" @click="editModalOpen = false" class="inline-flex items-center justify-center gap-2 rounded-3xl border border-border bg-card/95 px-6 py-3 text-sm font-semibold text-foreground shadow-2xl backdrop-blur-xl transition hover:bg-card-alt">Cancel</button>
+                        <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-3xl border border-primary/20 bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-2xl backdrop-blur-xl transition hover:bg-primary/90">Save Changes</button>
                     </div>
                 </form>
             </div>
@@ -75,65 +76,67 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
 
             @if (session('status'))
-                <div class="p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold text-xs rounded-xl">
-                    ✓ {{ session('status') }}
+                <div class="rounded-3xl border border-border bg-card/95 p-5 text-sm font-medium text-emerald-600 shadow-2xl backdrop-blur-xl dark:text-emerald-400">
+                    {{ session('status') }}
                 </div>
             @endif
 
             @if ($errors->any())
-                <div class="p-4 bg-rose-500/10 border border-rose-500/20 text-rose-400 font-bold text-xs rounded-xl space-y-1">
-                    <p>⚠️ Please fix the following errors:</p>
-                    @foreach ($errors->all() as $error)
-                        <p>• {{ $error }}</p>
-                    @endforeach
+                <div class="space-y-1 rounded-3xl border border-border bg-card/95 p-5 text-sm text-destructive shadow-2xl backdrop-blur-xl">
+                    <p class="font-semibold">Please fix the following errors:</p>
+                    <ul class="list-disc space-y-1 pl-5">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
                 </div>
             @endif
 
             <!-- Form: Register New Personnel -->
-            <details class="bg-card border border-border rounded-2xl p-6 shadow-sm group" open>
-                <summary class="font-black text-base text-foreground cursor-pointer flex items-center justify-between">
-                    <span>+ Register New Firefighter / Personnel</span>
-                    <span class="text-xs text-rose-500 font-bold uppercase tracking-wider">Admin Privileged Form</span>
+            <details class="group rounded-3xl border border-border bg-card/95 p-6 shadow-2xl backdrop-blur-xl" open>
+                <summary class="flex cursor-pointer flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                    <span class="text-lg font-semibold tracking-tight text-foreground">Register New Firefighter / Personnel</span>
+                    <span class="text-xs font-medium uppercase tracking-wider text-muted-foreground">Admin privileged form</span>
                 </summary>
 
-                <form action="{{ route('admin.firefighters.store') }}" method="POST" class="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                <form action="{{ route('admin.firefighters.store') }}" method="POST" class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
                     @csrf
 
                     <div>
-                        <label class="block text-[10px] font-bold uppercase text-muted mb-1">Full Name</label>
-                        <input type="text" name="name" value="{{ old('name') }}" required placeholder="John Doe" class="w-full bg-background border border-border rounded-xl p-2.5 text-xs text-foreground">
+                        <label class="mb-2 block text-sm font-medium text-foreground">Full Name</label>
+                        <input type="text" name="name" value="{{ old('name') }}" required placeholder="John Doe" class="{{ $inputClass }}">
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-bold uppercase text-muted mb-1">Badge / Serial No.</label>
-                        <input type="text" name="badge_number" value="{{ old('badge_number') }}" required placeholder="BFAD-178-088" class="w-full bg-background border border-border rounded-xl p-2.5 text-xs text-foreground font-mono">
+                        <label class="mb-2 block text-sm font-medium text-foreground">Badge / Serial No.</label>
+                        <input type="text" name="badge_number" value="{{ old('badge_number') }}" required placeholder="BFAD-178-088" class="{{ $inputClass }}">
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-bold uppercase text-muted mb-1">Official Email</label>
-                        <input type="email" name="email" value="{{ old('email') }}" required placeholder="j.doe@bfad178.gov.ph" class="w-full bg-background border border-border rounded-xl p-2.5 text-xs text-foreground">
+                        <label class="mb-2 block text-sm font-medium text-foreground">Official Email</label>
+                        <input type="email" name="email" value="{{ old('email') }}" required placeholder="j.doe@bfad178.gov.ph" class="{{ $inputClass }}">
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-bold uppercase text-muted mb-1">Role</label>
-                        <select name="role" required class="w-full bg-background border border-border rounded-xl p-2.5 text-xs text-foreground">
+                        <label class="mb-2 block text-sm font-medium text-foreground">Role</label>
+                        <select name="role" required class="{{ $inputClass }}">
                             <option value="Firefighter">Firefighter</option>
                             <option value="Admin">Admin</option>
                         </select>
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-bold uppercase text-muted mb-1">Default Password</label>
-                        <input type="password" name="password" required class="w-full bg-background border border-border rounded-xl p-2.5 text-xs text-foreground">
+                        <label class="mb-2 block text-sm font-medium text-foreground">Default Password</label>
+                        <input type="password" name="password" required class="{{ $inputClass }}">
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-bold uppercase text-muted mb-1">Confirm Password</label>
-                        <input type="password" name="password_confirmation" required class="w-full bg-background border border-border rounded-xl p-2.5 text-xs text-foreground">
+                        <label class="mb-2 block text-sm font-medium text-foreground">Confirm Password</label>
+                        <input type="password" name="password_confirmation" required class="{{ $inputClass }}">
                     </div>
 
-                    <div class="sm:col-span-2 md:col-span-3 flex justify-end">
-                        <button type="submit" class="px-5 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-black text-xs rounded-xl shadow-md uppercase tracking-wider">
+                    <div class="flex justify-end sm:col-span-2 md:col-span-3">
+                        <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-3xl border border-primary/20 bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-2xl backdrop-blur-xl transition hover:bg-primary/90 sm:w-auto">
                             Register Personnel
                         </button>
                     </div>
@@ -141,34 +144,34 @@
             </details>
 
             <!-- Personnel Roster Table -->
-            <div class="bg-card border border-border rounded-2xl p-6 shadow-sm space-y-4">
-                <h3 class="font-black text-lg text-foreground">Active Station Personnel Roster</h3>
+            <div class="space-y-4 rounded-3xl border border-border bg-card/95 p-6 shadow-2xl backdrop-blur-xl">
+                <h3 class="text-lg font-semibold tracking-tight text-foreground">Active Station Personnel Roster</h3>
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs">
-                        <thead class="border-b border-border uppercase text-[10px] font-mono text-muted">
-                            <tr>
-                                <th class="py-3 px-2">Badge No</th>
-                                <th class="py-3 px-2">Name</th>
-                                <th class="py-3 px-2">Email</th>
-                                <th class="py-3 px-2">Role</th>
-                                <th class="py-3 px-2">Registered On</th>
-                                <th class="py-3 px-2 text-right">Actions</th>
+                    <table class="w-full text-left text-sm">
+                        <thead class="border-b border-border">
+                            <tr class="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                                <th class="whitespace-nowrap px-4 py-3 font-medium">Badge No</th>
+                                <th class="whitespace-nowrap px-4 py-3 font-medium">Name</th>
+                                <th class="whitespace-nowrap px-4 py-3 font-medium">Email</th>
+                                <th class="whitespace-nowrap px-4 py-3 font-medium">Role</th>
+                                <th class="whitespace-nowrap px-4 py-3 font-medium">Registered On</th>
+                                <th class="whitespace-nowrap px-4 py-3 text-right font-medium">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-border">
                             @forelse($firefighters as $personnel)
                                 <tr>
-                                    <td class="py-3 px-2 font-mono font-bold text-rose-500">{{ $personnel->badge_number ?? $personnel->badge ?? $personnel->badge_id ?? $personnel->serial_number ?? 'N/A' }}</td>
-                                    <td class="py-3 px-2 font-bold text-foreground">{{ $personnel->name }}</td>
-                                    <td class="py-3 px-2 text-muted">{{ $personnel->email }}</td>
-                                    <td class="py-3 px-2">
-                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold {{ $personnel->hasRole('Admin') ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20' : 'bg-blue-500/10 text-blue-500 border border-blue-500/20' }}">
+                                    <td class="whitespace-nowrap px-4 py-3 text-sm font-semibold tabular-nums text-primary">{{ $personnel->badge_number ?? $personnel->badge ?? $personnel->badge_id ?? $personnel->serial_number ?? 'N/A' }}</td>
+                                    <td class="whitespace-nowrap px-4 py-3 text-sm font-medium text-foreground">{{ $personnel->name }}</td>
+                                    <td class="px-4 py-3 text-sm text-muted-foreground">{{ $personnel->email }}</td>
+                                    <td class="px-4 py-3 text-sm">
+                                        <span class="whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium {{ $personnel->hasRole('Admin') ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400' : 'bg-sky-500/10 text-sky-600 dark:text-sky-400' }}">
                                             {{ ucfirst($personnel->getRoleNames()->first() ?? 'Firefighter') }}
                                         </span>
                                     </td>
-                                    <td class="py-3 px-2 font-mono text-muted">{{ $personnel->created_at->format('Y-m-d') }}</td>
-                                    <td class="py-3 px-2 text-right">
-                                        <button type="button" 
+                                    <td class="whitespace-nowrap px-4 py-3 text-sm tabular-nums text-muted-foreground">{{ $personnel->created_at->format('Y-m-d') }}</td>
+                                    <td class="px-4 py-3 text-right text-sm">
+                                        <button type="button"
                                                 @click="editModalOpen = true; currentPersonnel = {
                                                     id: '{{ $personnel->id }}',
                                                     name: '{{ addslashes($personnel->name) }}',
@@ -176,15 +179,15 @@
                                                     email: '{{ $personnel->email }}',
                                                     role: '{{ $personnel->getRoleNames()->first() ?? 'Firefighter' }}',
                                                     update_url: '{{ route('admin.firefighters.update', $personnel->id) }}'
-                                                }" 
-                                                class="px-3 py-1 bg-secondary hover:bg-muted text-foreground font-bold rounded-lg transition cursor-pointer">
+                                                }"
+                                                class="inline-flex items-center justify-center gap-2 rounded-3xl border border-border bg-card/95 px-4 py-2 text-xs font-semibold text-foreground shadow-2xl backdrop-blur-xl transition hover:bg-card-alt">
                                             Edit
                                         </button>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="py-6 text-center text-muted italic">No personnel found.</td>
+                                    <td colspan="6" class="px-4 py-8 text-center text-sm text-muted-foreground">No personnel found.</td>
                                 </tr>
                             @endforelse
                         </tbody>

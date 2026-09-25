@@ -13,7 +13,7 @@
             <span style="font-size: 32px; font-weight: 900; letter-spacing: 6px; color: #e11d48;">{{ $otp }}</span>
         </div>
 
-        <p style="color: #71717a; font-size: 12px;">This code will expire in 10 minutes. If you did not request this code, please ignore this email.</p>
+        <p style="color: #71717a; font-size: 12px;">This code will expire in {{ config('auth.otp.expires_minutes') }} minutes. If you did not request this code, please ignore this email.</p>
     </div>
 </body>
 </html>

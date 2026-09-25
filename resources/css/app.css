@@ -33,8 +33,8 @@
 
     --radius: 0.75rem;
 
-    --font-display: 'Manrope', system-ui, sans-serif;
-    --font-body: 'Inter', system-ui, sans-serif;
+    --font-display: 'Hanken Grotesk', system-ui, sans-serif;
+    --font-body: 'Hanken Grotesk', system-ui, sans-serif;
   }
 
   .dark {
@@ -74,12 +74,12 @@
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
     font-family: var(--font-body);
-    @apply antialiased subpixel-antialiased transition-colors duration-200;
+    @apply antialiased transition-colors duration-200;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
-    @apply tracking-tight font-black;
+    @apply tracking-tight font-semibold;
   }
 
   /* Default Input Text & Background Handling (Non-Destructive) */
@@ -116,62 +116,9 @@ input:-webkit-autofill:focus {
   background: hsl(var(--muted));
 }
 
-@layer utilities {
-  .bg-card-alt {
-    background-color: hsl(var(--card-alt));
-  }
-}
-
-/* ==========================================================================
-   GLOBAL FORM INPUT THEME FIX (LIGHT & DARK MODE)
-   ========================================================================== */
-
-/* Light Mode Input Base */
-input, 
-select, 
-textarea {
-  color: #0f172a !important;            /* High-contrast dark text */
-  background-color: #ffffff !important;   /* White input background */
-}
-
-/* Dark Mode Input Overrides */
-.dark input, 
-.dark select, 
-.dark textarea {
-  color: #f8fafc !important;            /* Pure white visible text */
-  background-color: #18181b !important;   /* Dark zinc background */
-  border-color: #3f3f46 !important;       /* Subtle dark border */
-}
-
-/* Chrome/Edge/Safari Autofill Fix (Light Mode) */
-input:-webkit-autofill,
-input:-webkit-autofill:hover, 
-input:-webkit-autofill:focus,
-textarea:-webkit-autofill,
-select:-webkit-autofill {
-  -webkit-text-fill-color: #0f172a !important;
-  -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
-  transition: background-color 5000s ease-in-out 0s;
-}
-
-/* Chrome/Edge/Safari Autofill Fix (Dark Mode) */
-.dark input:-webkit-autofill,
-.dark input:-webkit-autofill:hover, 
-.dark input:-webkit-autofill:focus,
-.dark textarea:-webkit-autofill,
-.dark select:-webkit-autofill {
-  -webkit-text-fill-color: #f8fafc !important;
-  -webkit-box-shadow: 0 0 0px 1000px #18181b inset !important;
-  transition: background-color 5000s ease-in-out 0s;
-}
-
 /* Placeholder visibility */
 ::placeholder {
-  color: #94a3b8 !important;
-}
-
-.dark ::placeholder {
-  color: #71717a !important;
+  color: hsl(var(--muted-foreground) / 0.7);
 }
 
 [x-cloak] { display: none !important; }

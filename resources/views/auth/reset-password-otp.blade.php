@@ -1,77 +1,68 @@
 <x-guest-layout>
-    <div class="min-h-screen w-full flex items-center justify-center p-4 sm:p-6 bg-background transition-colors duration-200">
-        <div class="w-full max-w-md bg-card border border-border rounded-2xl shadow-2xl p-6 sm:p-8 space-y-6 relative overflow-hidden">
+    <div class="min-h-screen flex items-center justify-center p-4 sm:p-6">
+        <div class="w-full max-w-md space-y-6 rounded-3xl border border-border bg-card/95 p-6 shadow-2xl backdrop-blur-xl sm:p-8">
 
-            <!-- Background Accent Glow -->
-            <div class="absolute -top-12 -right-12 w-32 h-32 bg-primary/10 rounded-full blur-2xl pointer-events-none"></div>
-
-            <!-- Header -->
-            <div class="text-center space-y-2">
-                <div class="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-2xl shadow-sm mx-auto">
-                    🔑
+            <!-- Card Header -->
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <h2 class="text-2xl font-semibold tracking-tight text-foreground">Reset Your Password</h2>
+                    <p class="mt-1 text-sm text-muted-foreground">BFAD Station 178 · Camarin</p>
                 </div>
-                <h2 class="font-display font-black text-xl text-foreground tracking-tight">
-                    Reset Your Password
-                </h2>
-                <p class="text-xs text-muted">
-                    Enter the 6-digit code we sent to your email, then choose a new password.
-                </p>
+                <button type="button" data-theme-toggle class="rounded-3xl border border-border bg-card/95 px-4 py-2 text-xs font-semibold text-foreground shadow-2xl backdrop-blur-xl transition hover:bg-card-alt"><span class="dark:hidden">Dark</span><span class="hidden dark:inline">Light</span></button>
             </div>
 
-            <!-- Session Status -->
-            <x-auth-session-status class="text-xs font-bold text-emerald-600 bg-emerald-500/10 p-3 rounded-xl border border-emerald-500/20" :status="session('status')" />
+            <p class="text-sm text-muted-foreground">
+                Enter the 6-digit code we sent to your email, then choose a new password.
+            </p>
 
-            <form method="POST" action="{{ route('password.otp.reset') }}" class="space-y-4">
+            <!-- Session Status -->
+            <x-auth-session-status :status="session('status')" />
+
+            <form method="POST" action="{{ route('password.otp.reset') }}" class="space-y-5">
                 @csrf
 
                 <!-- Email -->
                 <div>
-                    <label for="email" class="block text-[11px] font-bold uppercase tracking-wider text-muted mb-1.5">Registered Personnel Email</label>
-                    <input id="email" type="email" name="email" value="{{ $email }}" required
-                        class="w-full bg-card-alt border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:ring-1 focus:ring-primary focus:border-primary">
-                    <x-input-error :messages="$errors->get('email')" class="mt-1.5" />
+                    <x-input-label for="email" value="Registered Personnel Email" />
+                    <x-text-input id="email" type="email" name="email" value="{{ $email }}" required readonly
+                                  class="cursor-not-allowed opacity-70" />
+                    <x-input-error :messages="$errors->get('email')" />
                 </div>
 
                 <!-- OTP -->
                 <div>
-                    <label for="otp" class="block text-[10px] font-display font-black uppercase text-muted tracking-wider mb-1.5 text-center">
-                        6-Digit OTP Code
-                    </label>
-                    <input id="otp" type="text" name="otp" required autofocus maxlength="6" inputmode="numeric" autocomplete="one-time-code"
-                           placeholder="123456"
-                           style="color: inherit;"
-                           class="w-full bg-slate-100 dark:bg-zinc-800 text-slate-900 dark:text-white border border-slate-300 dark:border-zinc-600 rounded-xl p-3.5 text-center text-lg font-mono font-bold tracking-widest focus:ring-2 focus:ring-primary focus:border-primary transition shadow-sm placeholder:text-slate-400 dark:placeholder:text-zinc-400" />
-                    <x-input-error :messages="$errors->get('otp')" class="mt-1.5 text-xs text-rose-500 text-center" />
+                    <x-input-label for="otp" value="6-Digit OTP Code" />
+                    <x-text-input id="otp" type="text" name="otp" required autofocus maxlength="6" inputmode="numeric" autocomplete="one-time-code"
+                                  placeholder="123456"
+                                  class="text-center text-lg tabular-nums tracking-widest" />
+                    <x-input-error :messages="$errors->get('otp')" />
                 </div>
 
                 <!-- New Password -->
                 <div>
-                    <label for="password" class="block text-[11px] font-bold uppercase tracking-wider text-muted mb-1.5">New Password</label>
-                    <input id="password" type="password" name="password" required autocomplete="new-password"
-                        class="w-full bg-card-alt border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:ring-1 focus:ring-primary focus:border-primary">
-                    <x-input-error :messages="$errors->get('password')" class="mt-1.5" />
+                    <x-input-label for="password" value="New Password" />
+                    <x-text-input id="password" type="password" name="password" required autocomplete="new-password" />
+                    <x-input-error :messages="$errors->get('password')" />
                 </div>
 
                 <!-- Confirm Password -->
                 <div>
-                    <label for="password_confirmation" class="block text-[11px] font-bold uppercase tracking-wider text-muted mb-1.5">Confirm New Password</label>
-                    <input id="password_confirmation" type="password" name="password_confirmation" required autocomplete="new-password"
-                        class="w-full bg-card-alt border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:ring-1 focus:ring-primary focus:border-primary">
+                    <x-input-label for="password_confirmation" value="Confirm New Password" />
+                    <x-text-input id="password_confirmation" type="password" name="password_confirmation" required autocomplete="new-password" />
                 </div>
 
-                <button type="submit" class="w-full py-3.5 bg-primary hover:opacity-90 text-primary-foreground font-display font-black text-xs rounded-xl uppercase tracking-wider transition-all shadow-md cursor-pointer flex items-center justify-center gap-2 mt-2">
-                    <span>Reset Password</span>
-                    <span>➔</span>
-                </button>
+                <x-primary-button class="w-full">
+                    Reset Password
+                </x-primary-button>
             </form>
 
-            <!-- Back to Login -->
-            <div class="pt-4 border-t border-border text-center">
-                <a href="{{ route('login') }}" class="text-[11px] font-bold text-muted hover:text-primary transition">
-                    ← Back to Login
-                </a>
-            </div>
+            <!-- Expiry countdown & Resend -->
+            <x-otp-resend :action="route('password.otp.resend')" :expires-at="$expiresAt" :resend-in="$resendIn" :resends-left="$resendsLeft" />
 
+            <!-- Back to Login -->
+            <div class="border-t border-border pt-4 text-center text-xs text-muted-foreground">
+                <a href="{{ route('login') }}" class="text-sm font-medium text-primary hover:underline">Back to login</a>
+            </div>
         </div>
     </div>
 </x-guest-layout>

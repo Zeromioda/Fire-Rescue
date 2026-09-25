@@ -14,6 +14,11 @@ return Application::configure(basePath: dirname(__DIR__))
         // Trust the hosting proxy (Railway) so HTTPS URLs are generated correctly
         $middleware->trustProxies(at: '*');
 
+        // Auto-logout after inactivity (see config/auth.php idle_timeout)
+        $middleware->web(append: [
+            \App\Http\Middleware\LogoutIdleUsers::class,
+        ]);
+
         // Register Spatie Permission Middleware Aliases
         $middleware->alias([
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,

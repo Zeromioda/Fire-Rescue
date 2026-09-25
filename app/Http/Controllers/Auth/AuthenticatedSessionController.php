@@ -4,12 +4,10 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
-use App\Mail\LoginOtpMail;
+use App\Services\OtpLimiter;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
@@ -33,36 +31,38 @@ class AuthenticatedSessionController extends Controller
 
         $user = Auth::user();
 
-        // 2. Generate a 6-digit OTP and set 10-minute expiration
-        $otp = (string) random_int(100000, 999999);
-        $user->login_otp = $otp;
-        $user->login_otp_expires_at = now()->addMinutes(10);
-        $user->save();
-
-        // 3. Temporarily log the user out so they can't access protected routes yet
+        // 2. Temporarily log the user out so they can't access protected routes yet
         Auth::guard('web')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
-        // 4. Send the OTP email via Resend
-        try {
-            Mail::to($user->email)->send(new LoginOtpMail($otp));
-        } catch (\Throwable $e) {
-            Log::error('Login OTP mail failed: '.$e->getMessage());
+        $limiter = OtpLimiter::for('login', $user->email);
 
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
+        // 3. Too many codes requested: block until the lockout window passes
+        if ($limiter->lockedOut()) {
+            return redirect()->route('login')
+                ->onlyInput('email')
+                ->withErrors(['email' => $limiter->blockedMessage()]);
+        }
+
+        // 4. Store the user ID temporarily in the new session for verification
+        $request->session()->put('auth.login_user_id', $user->id);
+
+        // 5. A code was sent seconds ago: reuse it instead of sending another
+        if ($limiter->availableIn() > 0) {
+            return redirect()->route('login.otp.verify.view')
+                ->with('success', 'A verification code was already sent to your email.');
+        }
+
+        // 6. Generate and send a fresh OTP
+        if (! LoginOtpVerificationController::sendCode($user)) {
+            $request->session()->forget('auth.login_user_id');
 
             return redirect()->route('login')
                 ->withErrors(['email' => 'We could not send your verification code. Please try again or contact the administrator.']);
         }
-        
-        // Invalidate session securely and regenerate token
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
 
-        // 5. Store the user ID temporarily in the new session for verification
-        $request->session()->put('auth.login_user_id', $user->id);
-
-        // 6. Redirect to the OTP verification screen with success message
+        // 7. Redirect to the OTP verification screen with success message
         return redirect()->route('login.otp.verify.view')
                          ->with('success', 'A verification code has been sent to your email.');
     }
@@ -72,6 +72,12 @@ class AuthenticatedSessionController extends Controller
         Auth::guard('web')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
+        if ($request->input('reason') === 'idle') {
+            return redirect()->route('login')
+                ->with('status', 'You were logged out after '.intdiv(config('auth.idle_timeout'), 60).' minutes of inactivity.');
+        }
+
         return redirect('/');
     }
 }

@@ -28,7 +28,11 @@ Route::middleware('guest')->group(function () {
         ->name('login.otp.verify.view');
 
     Route::post('login/verify-otp', [LoginOtpVerificationController::class, 'verify'])
+        ->middleware('throttle:5,1')
         ->name('login.otp.verify.store');
+
+    Route::post('login/verify-otp/resend', [LoginOtpVerificationController::class, 'resend'])
+        ->name('login.otp.resend');
 
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
         ->name('password.request');
@@ -64,4 +68,9 @@ Route::middleware('auth')->group(function () {
 
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
         ->name('logout');
+
+    // Pinged by the idle timer while the user is active, so the server-side
+    // idle check doesn't log out someone who is only reading/scrolling.
+    Route::post('session/keep-alive', fn () => response()->noContent())
+        ->name('session.keep-alive');
 });

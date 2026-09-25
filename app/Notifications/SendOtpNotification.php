@@ -29,7 +29,7 @@ class SendOtpNotification extends Notification
             ->greeting('Hello Responder,')
             ->line('Your one-time verification code is:')
             ->line('**' . $this->otp . '**')
-            ->line('This code will expire in 10 minutes.')
+            ->line('This code will expire in '.config('auth.otp.expires_minutes').' minutes.')
             ->line('If you did not request this, please ignore this email.');
     }
 }

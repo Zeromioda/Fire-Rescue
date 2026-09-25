@@ -1,11 +1,14 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="font-display font-extrabold text-xl text-primary flex items-center gap-2">
-                <span>🚨</span> {{ __('Log Incoming Fire Incident Call') }}
-            </h2>
-            <a href="{{ route('dashboard') }}" class="px-4 py-2 bg-card border border-border text-foreground hover:bg-card-alt font-display font-bold text-xs rounded-lg transition uppercase tracking-wide">
-                ← Back to Dashboard
+        <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+                <h2 class="text-2xl font-semibold tracking-tight text-foreground">
+                    {{ __('Log Incoming Fire Incident Call') }}
+                </h2>
+                <p class="mt-1 text-sm text-muted-foreground">Record the emergency details and pinpoint the location.</p>
+            </div>
+            <a href="{{ route('dashboard') }}" class="inline-flex items-center justify-center gap-2 rounded-3xl border border-border bg-card/95 px-6 py-3 text-sm font-semibold text-foreground shadow-2xl backdrop-blur-xl transition hover:bg-card-alt">
+                Back to Dashboard
             </a>
         </div>
     </x-slot>
@@ -14,26 +17,26 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    <div class="py-8 bg-background min-h-screen text-foreground">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-            <form action="{{ route('incidents.store') }}" method="POST" class="bg-card border border-border p-6 rounded-xl shadow-sm space-y-6">
+    <div class="py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+            <form action="{{ route('incidents.store') }}" method="POST" class="rounded-3xl border border-border bg-card/95 p-6 shadow-2xl backdrop-blur-xl space-y-6">
                 @csrf
 
-                <h3 class="text-xs font-display font-bold uppercase tracking-wider text-muted border-b border-border pb-3">
+                <h3 class="border-b border-border pb-4 text-lg font-semibold tracking-tight text-foreground">
                     Emergency Incident Details
                 </h3>
 
-                <!-- Incident Title -->
-                <div>
-                    <label class="block text-xs font-display font-bold uppercase text-muted mb-1">Incident Title / Emergency Type *</label>
-                    <input type="text" name="title" required placeholder="e.g., Commercial Structure Fire / Residential Blaze" class="w-full bg-background border-border text-sm text-foreground rounded-lg p-3 focus:ring-primary focus:border-primary">
-                </div>
-
-                <!-- Severity Level & Auto-Detect -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="grid gap-6 md:grid-cols-2">
+                    <!-- Incident Title -->
                     <div>
-                        <label class="block text-xs font-display font-bold uppercase text-muted mb-1">Severity Level *</label>
-                        <select name="severity" required class="w-full bg-background border-border text-sm text-foreground rounded-lg p-3 focus:ring-primary focus:border-primary">
+                        <label class="mb-2 block text-sm font-medium text-foreground">Incident Title / Emergency Type *</label>
+                        <input type="text" name="title" required placeholder="e.g., Commercial Structure Fire / Residential Blaze" class="w-full rounded-3xl border border-border bg-card/95 px-5 py-3 text-sm text-foreground shadow-2xl backdrop-blur-xl transition placeholder:text-muted-foreground/70 focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/30">
+                    </div>
+
+                    <!-- Severity Level -->
+                    <div>
+                        <label class="mb-2 block text-sm font-medium text-foreground">Severity Level *</label>
+                        <select name="severity" required class="w-full rounded-3xl border border-border bg-card/95 px-5 py-3 text-sm text-foreground shadow-2xl backdrop-blur-xl transition placeholder:text-muted-foreground/70 focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/30">
                             <option value="Low">Low (1st Alarm)</option>
                             <option value="Medium" selected>Medium (2nd Alarm)</option>
                             <option value="High">High (3rd Alarm)</option>
@@ -44,53 +47,51 @@
 
                 <!-- Address Input & Search Button -->
                 <div>
-                    <label class="block text-xs font-display font-bold uppercase text-muted mb-1">Street Address / Landmark *</label>
-                    <div class="flex gap-2">
-                        <input type="text" id="location_address" name="location_address" required placeholder="1071 Quirino Highway, Brgy. Kaligayahan Novaliches, Quezon City" class="flex-1 bg-background border-border text-sm text-foreground rounded-lg p-3 focus:ring-primary focus:border-primary">
-                        <button type="button" onclick="searchAddressOnMap()" class="px-6 py-3 bg-primary text-primary-foreground font-display font-bold text-xs rounded-lg uppercase tracking-wider hover:opacity-90 transition">
+                    <label class="mb-2 block text-sm font-medium text-foreground">Street Address / Landmark *</label>
+                    <div class="flex flex-col gap-3 sm:flex-row">
+                        <input type="text" id="location_address" name="location_address" required placeholder="1071 Quirino Highway, Brgy. Kaligayahan Novaliches, Quezon City" class="min-w-0 flex-1 w-full rounded-3xl border border-border bg-card/95 px-5 py-3 text-sm text-foreground shadow-2xl backdrop-blur-xl transition placeholder:text-muted-foreground/70 focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/30">
+                        <button type="button" onclick="searchAddressOnMap()" class="inline-flex items-center justify-center gap-2 rounded-3xl border border-border bg-card/95 px-6 py-3 text-sm font-semibold text-foreground shadow-2xl backdrop-blur-xl transition hover:bg-card-alt">
                             Search
                         </button>
                     </div>
-                    <p class="text-[11px] text-muted mt-1">Type an address and click Search, or click/drag the pin directly on the map below.</p>
+                    <p class="mt-2 text-xs text-muted-foreground">Type an address and click Search, or click/drag the pin directly on the map below.</p>
                 </div>
 
                 <!-- Interactive Map Pinpoint Box -->
-                <div class="border border-border rounded-lg p-3 bg-card-alt">
-                    <div class="flex justify-between items-center mb-2">
-                        <label class="block text-xs font-display font-bold uppercase text-muted">
-                            Interactive Location Map Pinpoint
-                        </label>
-                        <span class="text-[11px] font-bold text-primary bg-background px-2.5 py-1 rounded-full border border-border">
-                            Click or Drag Pin to Set Address
-                        </span>
+                <div class="rounded-2xl bg-card-alt p-4 space-y-3">
+                    <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <span class="text-sm font-medium text-foreground">Interactive Location Map Pinpoint</span>
+                        <span class="text-xs text-muted-foreground">Click or drag the pin to set the address</span>
                     </div>
 
                     <!-- Map Container with explicit CSS height -->
-                    <div id="dispatch-map" style="height: 380px; width: 100%; border-radius: 8px;" class="z-0 border border-border"></div>
+                    <div id="dispatch-map" style="height: 380px; width: 100%;" class="z-0 overflow-hidden rounded-2xl border border-border"></div>
                 </div>
 
                 <!-- Latitude & Longitude Fields -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="grid gap-6 md:grid-cols-2">
                     <div>
-                        <label class="block text-xs font-display font-bold uppercase text-muted mb-1">Latitude *</label>
-                        <input type="text" id="latitude" name="latitude" readonly required class="w-full bg-card-alt border-border text-sm text-foreground font-mono rounded-lg p-3 cursor-not-allowed">
+                        <label class="mb-2 block text-sm font-medium text-foreground">Latitude *</label>
+                        <input type="text" id="latitude" name="latitude" readonly required class="w-full rounded-3xl border border-border bg-card/95 px-5 py-3 text-sm text-foreground shadow-2xl backdrop-blur-xl transition placeholder:text-muted-foreground/70 focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/30 tabular-nums cursor-not-allowed text-muted-foreground">
                     </div>
                     <div>
-                        <label class="block text-xs font-display font-bold uppercase text-muted mb-1">Longitude *</label>
-                        <input type="text" id="longitude" name="longitude" readonly required class="w-full bg-card-alt border-border text-sm text-foreground font-mono rounded-lg p-3 cursor-not-allowed">
+                        <label class="mb-2 block text-sm font-medium text-foreground">Longitude *</label>
+                        <input type="text" id="longitude" name="longitude" readonly required class="w-full rounded-3xl border border-border bg-card/95 px-5 py-3 text-sm text-foreground shadow-2xl backdrop-blur-xl transition placeholder:text-muted-foreground/70 focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/30 tabular-nums cursor-not-allowed text-muted-foreground">
                     </div>
                 </div>
 
                 <!-- Notes & Field Observations -->
                 <div>
-                    <label class="block text-xs font-display font-bold uppercase text-muted mb-1">Dispatcher Notes & Field Observations *</label>
-                    <textarea name="description" rows="4" required placeholder="Describe caller statements, fire status, trapped occupants, chemical risks..." class="w-full bg-background border-border text-sm text-foreground rounded-lg p-3 focus:ring-primary focus:border-primary"></textarea>
+                    <label class="mb-2 block text-sm font-medium text-foreground">Dispatcher Notes & Field Observations *</label>
+                    <textarea name="description" rows="4" required placeholder="Describe caller statements, fire status, trapped occupants, chemical risks..." class="w-full rounded-3xl border border-border bg-card/95 px-5 py-3 text-sm text-foreground shadow-2xl backdrop-blur-xl transition placeholder:text-muted-foreground/70 focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/30"></textarea>
                 </div>
 
                 <!-- Submit Button -->
-                <button type="submit" class="w-full py-4 bg-accent hover:opacity-90 text-accent-foreground font-display font-extrabold text-sm rounded-lg uppercase tracking-wider shadow-md transition flex items-center justify-center gap-2">
-                    🚨 Dispatch Emergency Call
-                </button>
+                <div class="flex justify-end">
+                    <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-3xl border border-primary/20 bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-2xl backdrop-blur-xl transition hover:bg-primary/90">
+                        Dispatch Emergency Call
+                    </button>
+                </div>
             </form>
         </div>
     </div>

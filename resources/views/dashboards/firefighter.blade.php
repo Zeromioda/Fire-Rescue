@@ -1,21 +1,21 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-                <h2 class="font-display font-black text-xl text-primary flex items-center gap-2 tracking-tight">
-                    <span>🚒</span> Barangay Firefighter Terminal
+                <h2 class="text-2xl font-semibold tracking-tight text-foreground">
+                    Barangay Firefighter Terminal
                 </h2>
-                <p class="text-xs text-muted font-mono mt-0.5">
-                    STATION: <span class="font-bold text-foreground">Barangay 178 Camarin, Caloocan City, Zone 15, District III</span>
+                <p class="mt-1 text-sm text-muted-foreground">
+                    Station: <span class="font-medium text-foreground">Barangay 178 Camarin, Caloocan City, Zone 15, District III</span>
                 </p>
             </div>
 
             <!-- Duty Status Toggle Form -->
             <form action="{{ route('responder.toggle-availability') }}" method="POST">
                 @csrf
-                <button type="submit" class="px-4 py-2.5 rounded-xl font-display font-extrabold text-xs uppercase tracking-wider transition-all border flex items-center gap-2 shadow-sm cursor-pointer {{ Auth::user()->is_available ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20' : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30 hover:bg-rose-500/20' }}">
-                    <span class="w-2.5 h-2.5 rounded-full animate-pulse {{ Auth::user()->is_available ? 'bg-emerald-500' : 'bg-rose-500' }}"></span>
-                    <span>STATUS: {{ Auth::user()->is_available ? 'ON-DUTY / AVAILABLE' : 'ON-CALL / BUSY' }}</span>
+                <button type="submit" class="inline-flex cursor-pointer items-center justify-center gap-2 rounded-3xl border border-border bg-card/95 px-6 py-3 text-sm font-semibold text-foreground shadow-2xl backdrop-blur-xl transition hover:bg-card-alt">
+                    <span class="h-2.5 w-2.5 rounded-full animate-pulse {{ Auth::user()->is_available ? 'bg-emerald-500' : 'bg-rose-500' }}"></span>
+                    <span>Status: {{ Auth::user()->is_available ? 'On-duty / Available' : 'On-call / Busy' }}</span>
                 </button>
             </form>
         </div>
@@ -24,7 +24,7 @@
     <!-- Leaflet & Routing Machine Assets -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
-    
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
 
@@ -32,9 +32,9 @@
         /* Scoped Compact Leaflet Routing Overlay */
         .leaflet-routing-container {
             background-color: rgba(255, 255, 255, 0.95) !important;
-            border-radius: 12px !important;
+            border-radius: 16px !important;
             padding: 8px 12px !important;
-            font-size: 11px !important;
+            font-size: 12px !important;
             box-shadow: 0 4px 12px rgba(0,0,0,0.12) !important;
             max-height: 150px !important;
             overflow-y: auto !important;
@@ -47,66 +47,62 @@
         }
     </style>
 
-    <div class="py-8 bg-background min-h-screen text-foreground transition-colors duration-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+    <div class="py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
 
             <!-- Active Emergency Dispatches Section -->
-            <div>
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xs font-display font-extrabold uppercase tracking-wider text-muted flex items-center gap-2">
-                        <span>🚨</span> ACTIVE EMERGENCY DISPATCHES ({{ $activeIncidents->count() }})
-                    </h3>
-                </div>
+            <div class="space-y-4">
+                <h3 class="text-lg font-semibold tracking-tight text-foreground">
+                    Active Emergency Dispatches <span class="tabular-nums text-muted-foreground">({{ $activeIncidents->count() }})</span>
+                </h3>
 
                 @if($activeIncidents->isEmpty())
-                    <div class="bg-card border border-border p-10 rounded-2xl text-center space-y-3 shadow-sm">
-                        <div class="w-12 h-12 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto text-xl">✅</div>
-                        <h4 class="font-display font-bold text-foreground text-sm">No Active Emergency Calls</h4>
-                        <p class="text-xs text-muted max-w-sm mx-auto">All clear for Barangay 178 Camarin, Caloocan City District III.</p>
+                    <div class="space-y-2 rounded-3xl border border-border bg-card/95 p-6 text-center shadow-2xl backdrop-blur-xl sm:p-10">
+                        <h4 class="text-lg font-semibold tracking-tight text-foreground">No Active Emergency Calls</h4>
+                        <p class="mx-auto max-w-sm text-sm text-muted-foreground">All clear for Barangay 178 Camarin, Caloocan City District III.</p>
                     </div>
                 @else
                     <div class="space-y-6">
                         @foreach($activeIncidents as $incident)
-                            <div class="bg-card border border-border rounded-2xl p-6 shadow-sm grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                
+                            <div class="grid grid-cols-1 gap-6 rounded-3xl border border-border bg-card/95 p-6 shadow-2xl backdrop-blur-xl lg:grid-cols-2">
+
                                 <!-- Left Column: Incident Details & Forms -->
-                                <div class="space-y-4 flex flex-col justify-between">
+                                <div class="flex min-w-0 flex-col justify-between space-y-4">
                                     <div class="space-y-4">
-                                        <div class="flex justify-between items-center border-b border-border pb-3">
-                                            <span class="px-3 py-1 rounded-full text-[10px] font-display font-black uppercase tracking-wider {{ strtolower($incident->severity) === 'high' || strtolower($incident->severity) === 'critical' ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20' : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20' }}">
+                                        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-4">
+                                            <span class="rounded-full px-3 py-1 text-xs font-medium {{ strtolower($incident->severity) === 'high' || strtolower($incident->severity) === 'critical' ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400' : 'bg-amber-500/10 text-amber-600 dark:text-amber-400' }}">
                                                 {{ $incident->severity }} Priority
                                             </span>
-                                            <span class="text-xs font-mono font-bold text-muted flex items-center gap-1.5">
-                                                <span>STATUS:</span>
-                                                <span class="px-2 py-0.5 rounded bg-primary/10 text-primary uppercase font-bold">{{ $incident->status }}</span>
+                                            <span class="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                                                <span>Status</span>
+                                                <span class="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">{{ $incident->status }}</span>
                                             </span>
                                         </div>
 
                                         <div>
-                                            <h3 class="text-xl font-display font-extrabold text-foreground tracking-tight">{{ $incident->title }}</h3>
-                                            <p class="text-xs text-muted mt-1.5 flex items-start gap-1.5 leading-relaxed">
-                                                <span class="shrink-0">📍</span> 
-                                                <span id="address-text-{{ $incident->id }}" class="font-medium text-foreground/90">{{ $incident->location_address }}</span>
+                                            <h3 class="text-xl font-semibold tracking-tight text-foreground">{{ $incident->title }}</h3>
+                                            <p class="mt-1 text-sm leading-relaxed text-muted-foreground">
+                                                <span id="address-text-{{ $incident->id }}">{{ $incident->location_address }}</span>
                                             </p>
                                         </div>
 
-                                        <div class="bg-card-alt border border-border p-3.5 rounded-xl space-y-1">
-                                            <span class="block text-[10px] font-display font-bold uppercase text-muted tracking-wider">DISPATCH NOTES / OBSERVATIONS</span>
-                                            <p class="text-xs text-foreground/90 font-sans leading-relaxed">{{ $incident->description }}</p>
+                                        <div class="space-y-1 rounded-2xl bg-card-alt p-4">
+                                            <span class="block text-xs font-medium uppercase tracking-wider text-muted-foreground">Dispatch Notes / Observations</span>
+                                            <p class="text-sm leading-relaxed text-foreground">{{ $incident->description }}</p>
                                         </div>
 
                                         <!-- Status Update Form -->
-                                        <form action="{{ route('incidents.update-status', $incident) }}" method="POST" class="bg-background border border-border p-3 rounded-xl space-y-2">
+                                        <form action="{{ route('incidents.update-status', $incident) }}" method="POST" class="space-y-2">
                                             @csrf
                                             @method('PATCH')
-                                            <label class="block text-[10px] font-display font-bold uppercase text-muted">Update Responding Status</label>
-                                            <div class="flex gap-2">
-                                                <select name="status" class="flex-1 bg-card border-border text-xs text-foreground rounded-lg p-2.5 font-bold focus:ring-primary focus:border-primary">
+                                            <label for="status-{{ $incident->id }}" class="mb-2 block text-sm font-medium text-foreground">Update Responding Status</label>
+                                            <div class="flex flex-col gap-3 sm:flex-row">
+                                                <select id="status-{{ $incident->id }}" name="status" class="w-full flex-1 rounded-3xl border border-border bg-card/95 px-5 py-3 text-sm text-foreground shadow-2xl backdrop-blur-xl transition placeholder:text-muted-foreground/70 focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/30">
                                                     <option value="Dispatched" {{ $incident->status === 'Dispatched' ? 'selected' : '' }}>En Route (Dispatched)</option>
                                                     <option value="Under Control" {{ $incident->status === 'Under Control' ? 'selected' : '' }}>On-Scene / Under Control</option>
                                                     <option value="Resolved" {{ $incident->status === 'Resolved' ? 'selected' : '' }}>Fire Extinguished / Complete</option>
                                                 </select>
-                                                <button type="submit" class="px-4 py-2.5 bg-primary text-primary-foreground font-display font-bold text-xs uppercase tracking-wider rounded-lg hover:opacity-90 transition">
+                                                <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-3xl border border-primary/20 bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-2xl backdrop-blur-xl transition hover:bg-primary/90">
                                                     Update
                                                 </button>
                                             </div>
@@ -114,9 +110,9 @@
                                     </div>
 
                                     <!-- After-Action Report Form -->
-                                    <form action="{{ route('incidents.submit-report', $incident) }}" method="POST" class="space-y-3 pt-3 border-t border-border">
+                                    <form action="{{ route('incidents.submit-report', $incident) }}" method="POST" class="space-y-3 border-t border-border pt-4">
                                         @csrf
-                                        <label class="block text-xs font-display font-bold uppercase text-muted tracking-wider">
+                                        <label for="report-{{ $incident->id }}" class="mb-2 block text-sm font-medium text-foreground">
                                             Fire Incident After-Action Report
                                         </label>
 
@@ -124,34 +120,34 @@
                                         <input type="hidden" name="latitude" id="input-lat-{{ $incident->id }}" value="{{ $incident->latitude }}">
                                         <input type="hidden" name="longitude" id="input-lng-{{ $incident->id }}" value="{{ $incident->longitude }}">
 
-                                        <textarea name="after_action_report" rows="3" required placeholder="Log cause of fire, casualties, equipment used, and extinguishment time..." class="w-full bg-background border-border text-xs text-foreground rounded-xl p-3 focus:ring-primary focus:border-primary leading-relaxed">{{ $incident->after_action_report }}</textarea>
+                                        <textarea id="report-{{ $incident->id }}" name="after_action_report" rows="3" required placeholder="Log cause of fire, casualties, equipment used, and extinguishment time..." class="w-full rounded-3xl border border-border bg-card/95 px-5 py-3 text-sm leading-relaxed text-foreground shadow-2xl backdrop-blur-xl transition placeholder:text-muted-foreground/70 focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/30">{{ $incident->after_action_report }}</textarea>
 
-                                        <button type="submit" class="w-full py-3 bg-accent hover:opacity-90 text-accent-foreground font-display font-extrabold text-xs rounded-xl uppercase tracking-wider transition shadow-sm">
-                                            Submit Final Report & Complete
+                                        <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-3xl border border-primary/20 bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-2xl backdrop-blur-xl transition hover:bg-primary/90">
+                                            Submit Final Report &amp; Complete
                                         </button>
                                     </form>
                                 </div>
 
                                 <!-- Right Column: Interactive Road Map -->
-                                <div class="space-y-3 flex flex-col justify-between">
-                                    <div class="flex flex-wrap justify-between items-center text-xs gap-2">
-                                        <span class="font-display font-bold uppercase text-muted flex items-center gap-1">
-                                            <span>📍 TARGET GPS:</span>
-                                            <span class="font-mono text-foreground font-bold" id="coords-display-{{ $incident->id }}">{{ number_format($incident->latitude, 6) }}, {{ number_format($incident->longitude, 6) }}</span>
-                                        </span>
-                                        <a href="https://www.google.com/maps/dir/?api=1&destination={{ $incident->latitude }},{{ $incident->longitude }}" target="_blank" class="font-bold text-primary hover:underline flex items-center gap-1 bg-primary/10 px-2.5 py-1 rounded-lg">
-                                            <span>🗺️</span> Open Google Maps
+                                <div class="flex min-w-0 flex-col justify-between space-y-4">
+                                    <div class="flex flex-wrap items-center justify-between gap-3">
+                                        <div class="text-sm">
+                                            <span class="block text-xs font-medium uppercase tracking-wider text-muted-foreground">Target GPS</span>
+                                            <span class="font-medium tabular-nums text-foreground" id="coords-display-{{ $incident->id }}">{{ number_format($incident->latitude, 6) }}, {{ number_format($incident->longitude, 6) }}</span>
+                                        </div>
+                                        <a href="https://www.google.com/maps/dir/?api=1&destination={{ $incident->latitude }},{{ $incident->longitude }}" target="_blank" class="inline-flex items-center justify-center gap-2 rounded-3xl border border-border bg-card/95 px-4 py-2 text-xs font-semibold text-foreground shadow-2xl backdrop-blur-xl transition hover:bg-card-alt">
+                                            Open Google Maps
                                         </a>
                                     </div>
 
                                     <!-- Map Container Wrapper -->
-                                    <div class="relative w-full rounded-xl overflow-hidden border border-border shadow-inner">
-                                        <div id="map-{{ $incident->id }}" class="w-full h-[380px] z-0"></div>
+                                    <div class="relative w-full overflow-hidden rounded-2xl border border-border">
+                                        <div id="map-{{ $incident->id }}" class="z-0 h-[380px] w-full"></div>
                                     </div>
 
-                                    <div class="p-2.5 bg-card-alt rounded-xl border border-border text-center">
-                                        <p class="text-[11px] text-muted">
-                                            💡 <b>Station Base:</b> Brgy. 178 Camarin | Drag destination pin to refine route & geocode location.
+                                    <div class="rounded-2xl bg-card-alt p-4 text-center">
+                                        <p class="text-xs text-muted-foreground">
+                                            <span class="font-medium text-foreground">Station Base:</span> Brgy. 178 Camarin | Drag destination pin to refine route &amp; geocode location.
                                         </p>
                                     </div>
                                 </div>
@@ -241,22 +237,23 @@
 
             <!-- Recently Resolved Section -->
             @if(isset($resolvedIncidents) && $resolvedIncidents->isNotEmpty())
-                <div class="pt-6 border-t border-border space-y-4">
-                    <h3 class="text-xs font-display font-extrabold uppercase tracking-wider text-muted">
-                        RECENTLY RESOLVED INCIDENTS (BARANGAY 178 CAMARIN)
+                <div class="space-y-4">
+                    <h3 class="text-lg font-semibold tracking-tight text-foreground">
+                        Recently Resolved Incidents
+                        <span class="block text-sm font-normal text-muted-foreground">Barangay 178 Camarin</span>
                     </h3>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="grid gap-6 md:grid-cols-2">
                         @foreach($resolvedIncidents as $resolved)
-                            <div class="bg-card border border-border rounded-xl p-4 space-y-2 shadow-sm">
-                                <div class="flex justify-between items-center">
-                                    <h4 class="font-display font-bold text-sm text-foreground">{{ $resolved->title }}</h4>
-                                    <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 uppercase">Resolved</span>
+                            <div class="min-w-0 space-y-3 rounded-3xl border border-border bg-card/95 p-5 shadow-2xl backdrop-blur-xl">
+                                <div class="flex items-start justify-between gap-3">
+                                    <h4 class="text-sm font-semibold text-foreground">{{ $resolved->title }}</h4>
+                                    <span class="shrink-0 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">Resolved</span>
                                 </div>
-                                <p class="text-xs text-muted">📍 {{ $resolved->location_address }}</p>
+                                <p class="text-sm text-muted-foreground">{{ $resolved->location_address }}</p>
                                 @if($resolved->after_action_report)
-                                    <div class="bg-card-alt p-3 rounded-lg text-xs text-foreground font-sans mt-2 border border-border">
-                                        <b class="text-primary uppercase text-[10px] block mb-0.5">Final Report:</b>
+                                    <div class="rounded-2xl bg-card-alt p-4 text-sm text-foreground">
+                                        <span class="mb-1 block text-xs font-medium uppercase tracking-wider text-primary">Final Report</span>
                                         {{ $resolved->after_action_report }}
                                     </div>
                                 @endif

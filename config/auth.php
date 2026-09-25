@@ -126,4 +126,37 @@ return [
 
     'login_otp' => env('LOGIN_OTP_ENABLED', true),
 
+    /*
+    |--------------------------------------------------------------------------
+    | OTP Limits
+    |--------------------------------------------------------------------------
+    |
+    | Applies to both login OTP and password reset OTP. A code expires after
+    | "expires_minutes". A new code can be requested every "resend_cooldown"
+    | seconds, up to "max_resends" times; after that the email is locked out
+    | of receiving codes for "lockout_minutes".
+    |
+    */
+
+    'otp' => [
+        'expires_minutes' => (int) env('OTP_EXPIRES_MINUTES', 2),
+        'resend_cooldown' => (int) env('OTP_RESEND_COOLDOWN', 30),
+        'max_resends' => (int) env('OTP_MAX_RESENDS', 3),
+        'lockout_minutes' => (int) env('OTP_LOCKOUT_MINUTES', 15),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Idle Timeout
+    |--------------------------------------------------------------------------
+    |
+    | Signed-in users are logged out after "idle_timeout" seconds without
+    | activity. A countdown card is shown for the last "idle_warning" seconds.
+    |
+    */
+
+    'idle_timeout' => (int) env('IDLE_TIMEOUT', 300),
+
+    'idle_warning' => (int) env('IDLE_WARNING', 60),
+
 ];
