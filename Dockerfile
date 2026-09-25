@@ -48,8 +48,9 @@ RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cac
 ENV PORT=3000
 EXPOSE 3000
 
-# Run migrations, cache config, then serve on Railway's $PORT
+# Run migrations, seed roles/admin, cache config, then serve on Railway's $PORT
 CMD php artisan migrate --force \
+    && php artisan db:seed --class=AdminSeeder --force \
     && php artisan config:cache \
     && php artisan route:cache \
     && php artisan view:cache \
