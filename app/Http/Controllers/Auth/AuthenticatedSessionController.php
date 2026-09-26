@@ -22,14 +22,15 @@ class AuthenticatedSessionController extends Controller
         // 1. Authenticate credentials via LoginRequest
         $request->authenticate();
 
-        // OTP can be switched off with LOGIN_OTP_ENABLED=false (e.g. if mail is down)
-        if (! config('auth.login_otp')) {
+        $user = Auth::user();
+
+        // OTP can be switched off with LOGIN_OTP_ENABLED=false (e.g. if mail is down),
+        // and is only required for Admin accounts
+        if (! config('auth.login_otp') || ! $user->hasRole('Admin')) {
             $request->session()->regenerate();
 
             return redirect()->intended(route('dashboard', absolute: false));
         }
-
-        $user = Auth::user();
 
         // 2. Temporarily log the user out so they can't access protected routes yet
         Auth::guard('web')->logout();
